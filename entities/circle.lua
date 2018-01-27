@@ -2,7 +2,7 @@ local GameObject = require "alphonsus.gameobject"
 
 local Circle = GameObject:extend()
 
-function Circle:new(x, y, w, h)
+function Circle:new(x, y, w, h, color, selfDestructIn)
 	Circle.super.new(self, x, y, w, h)
 	self.name = "Circle"
 	self.isCircle = true
@@ -10,6 +10,10 @@ function Circle:new(x, y, w, h)
 	self.color = color or {255,255,255}
 
 	self.collider = nil
+
+	if selfDestructIn then
+		self:selfDestructIn(selfDestructIn)
+	end
 	
 	return self
 end

@@ -1,7 +1,10 @@
 local timer = require "lib.hump.timer"
 local _ = require "lib.lume"
 local Vector = require "lib.hump.vector"
+local anim8 = require "lib.anim8"
+
 local GameObject = require "alphonsus.gameobject"
+local assets = require "assets"
 
 local Disc = GameObject:extend()
 
@@ -26,12 +29,20 @@ function Disc:new(x, y)
 	self.bounces = 0
 
 	local speed = 220
-	local maxVelocity = 500
+	local maxVelocity = 300
 
 	local angle = 150
-	-- _.random(0,360)
 	self.speed = speed
 
+	-- draw
+	self.isLayerYPos = true
+	self.sprite = assets.spritesheet
+	self.flippedH = false
+	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
+	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
+	self.animation = anim8.newAnimation(g('1-1',19), 0.1)
+
+	-- movable
 	self.movable = {
 		velocity = { x = 0, y = 0 },
 		acceleration = { x = 0, y = 0 },
@@ -40,13 +51,14 @@ function Disc:new(x, y)
 		speed = { x = 0, y = 0 }
 	}
 
+	-- collider
 	self.collider = {
 		x = x - self.offset.x,
 		y = y - self.offset.y,
 		w = self.width,
 		h = self.height,
-		ox = 0,
-		oy = 0
+		ox = -self.offset.x,
+		oy = -self.offset.y
 	}
 
 	-- self.nonCollidableTags = {"isDisc", "isPlayer"}
@@ -70,7 +82,6 @@ function Disc:onKillPlayer(player)
 end
 
 function Disc:stop()
-	print("STOP")
 	if self.speedMultiplier > 1.0 then self.speedMultiplier = 1.0 end
 	self.isStopping = true
 end
@@ -89,9 +100,8 @@ end
 
 function Disc:shoot(angle, charge)
 	self.speedMultiplier = 1.0 + (charge/50)
-	local ox, oy = _.vector(math.rad(angle), self.speed)
+	local ox, oy = _.vector(math.rad(angle), 1)
 	local v = Vector(ox, oy):normalized() * self.speed
-	-- local nv = v:normalized() * self.speed
 	self.status = status.thrown
 	self.movable.velocity.x = v.x * self.speedMultiplier
 	self.movable.velocity.y = v.y * self.speedMultiplier
@@ -124,25 +134,22 @@ function Disc:collide(other, col)
 			vy = -vy
 		end
 
-		-- bounce
-		self.movable.velocity.x = vx * self.speedMultiplier
-		self.movable.velocity.y = vy * self.speedMultiplier
+		-- on bounce
+		self.movable.velocity.x = vx
+		self.movable.velocity.y = vy
 
 		self.bounces = self.bounces + 1
 
-			print(self.bounces, self.maxBounces)
 		if self.bounces >= self.maxBounces then
 			self:stop()
 		end
-
-		-- if self.status == thrown then
-		-- 	self.speedMultiplier = self.speedMultiplier + 0.1
-		-- end
 	end
 end
 
 function Disc:update(dt)
 	self.color = (self.status == status.thrown) and G.colors.red or G.colors.green
+
+	self.angle = self.angle + 0.3
 
 	if self.owner and self.status == status.picked then
 		self.movable.velocity.x = 0
@@ -150,8 +157,8 @@ function Disc:update(dt)
 
 		local o = self.owner
 		if not o.isAiming then
-			self.pos.x = o.pos.x-- + (o.direction == 'right' and 8 or -8)
-			self.pos.y = o.pos.y-- + 8
+			self.pos.x = o.pos.x
+			self.pos.y = o.pos.y
 		end
 	end
 
@@ -164,10 +171,7 @@ function Disc:update(dt)
 
 		local max = math.max(math.abs(self.movable.velocity.x), math.abs(self.movable.velocity.y))
 
-		if max < 1 then
-		-- 	self.speedMultiplier = 0
-		-- 	self.movable.velocity.x = 0
-		-- 	self.movable.velocity.y = 0
+		if max < 5 then
 			self.status = status.pickable
 			self.owner = nil
 		end
@@ -181,7 +185,7 @@ end
 function Disc:draw()
 	if self.status == status.picked then return end
 	love.graphics.setColor(self.color)
-	love.graphics.rectangle("fill", self.pos.x, self.pos.y, self.width, self.height)
+	love.graphics.rectangle("fill", self.pos.x-self.offset.x, self.pos.y-self.offset.y, self.width, self.height)
 	love.graphics.setColor(255,255,255)
 end
 

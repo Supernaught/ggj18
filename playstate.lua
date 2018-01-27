@@ -33,7 +33,7 @@ function PlayState:enter()
 	scene = self
 
 	-- dummy
-	self:addEntity(Dummy(50,50))
+	-- self:addEntity(Dummy(50,50))
 
 	-- setup tile map
 	tileMap = TileMap("assets/maps/level.lua", nil, nil, self.bumpWorld)

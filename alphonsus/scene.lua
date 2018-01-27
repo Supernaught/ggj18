@@ -18,6 +18,7 @@ local collisionSystem = require "systems.collisionSystem"
 local movableSystem = require "systems.movableSystem"
 local moveTowardsAngleSystem = require "systems.moveTowardsAngleSystem"
 local moveTowardsPositionSystem = require "systems.moveTowardsPositionSystem"
+local followSystem = require "systems.followSystem"
 
 local Camera = require "alphonsus.camera"
 local Input = require "alphonsus.input"
@@ -65,6 +66,7 @@ function Scene:update(dt)
 		updateSystem(e, e, dt)
 		moveTowardsAngleSystem(e, e, dt)
 		moveTowardsPositionSystem(e, e, dt)
+		-- followSystem(e, e, dt)
 		movableSystem(e, e, dt)
 		collisionSystem(e, e, self.bumpWorld)
 		removeSystem(e, i, self.entities, self.bumpWorld)

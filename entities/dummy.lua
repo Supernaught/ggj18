@@ -20,6 +20,7 @@ function Dummy:new(x, y, w, h)
 		oy = -self.offset.y
 	}
 
+	-- anim
 	self.isLayerYPos = true
 	self.sprite = assets.spritesheet
 	self.flippedH = false

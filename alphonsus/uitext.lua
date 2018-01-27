@@ -16,8 +16,8 @@ function UIText:new(x, y, text, width, align, fontSize, font, fontScale)
 	self.text = text or ""
 	self.width = width or love.graphics.getWidth()/G.scale
 	self.align = align or "center"
-	self.fontSize = fontSize
-	self.font = font or nil
+	self.fontSize = fontSize or 8
+	self.font = font or assets.font_sm
 	self.fontScale = fontScale or 1
 
 	return self

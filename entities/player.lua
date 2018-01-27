@@ -6,6 +6,9 @@ local anim8 = require "lib.anim8"
 local _ = require "lib.lume"
 local assets = require "assets"
 
+local Explosion = require "entities.explosion"
+local Circle = require "entities.circle"
+local Popup = require "entities.popup"
 local Disc = require "entities.disc"
 local Bullet = require "entities.bullet"
 
@@ -14,6 +17,9 @@ local Player = GameObject:extend()
 function Player:new(x, y, playerNo)
 	Player.super.new(self, x, y)
 	self.name = "Player"
+
+	-- self.shadow = Circle(self.pos.x, self.pos.y, 16,3)
+	-- scene:addEntity(self.shadow)
 
 	-- disc behavior
 	self.hasDisc = false
@@ -34,8 +40,8 @@ function Player:new(x, y, playerNo)
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
-	self.idleAnimation = anim8.newAnimation(g('1-4',2), 0.1)
-	self.runningAnimation = anim8.newAnimation(g('1-10',1), 0.05)
+	self.idleAnimation = anim8.newAnimation(g('1-3',1), 0.1)
+	self.runningAnimation = anim8.newAnimation(g('1-3',1), 0.1)
 	self.dashAnimation = anim8.newAnimation(g('1-3',1), 0.1)
 	self.animation = self.idleAnimation
 
@@ -56,20 +62,20 @@ function Player:new(x, y, playerNo)
 	}
 
 	-- particles
-	-- self.trailPs = Particles()
-	-- local playerTrail = require "entities.particles.playerTrail"
-	-- if self.playerNo == 2 then playerTrail.colors = {82, 127, 157, 255} end
-	-- self.trailPs:load(playerTrail)
+	self.trailPs = Particles()
+	local playerTrail = require "entities.particles.playerTrail"
+	if self.playerNo == 2 then playerTrail.colors = {82, 127, 157, 255} end
+	self.trailPs:load(playerTrail)
 	-- scene:addEntity(self.trailPs)
 
 	-- collider
 	self.collider = {
 		x = x - self.offset.x,
-		y = y - self.offset.y,
+		y = y + self.offset.y,
 		w = self.width,
-		h = self.height,
-		ox = 0,
-		oy = 0
+		h = self.height-6,
+		ox = -self.offset.x,
+		oy = 6 - self.offset.y
 	}
 	self.collidableTags = {"isEnemy"}
 	self.nonCollidableTags = {"isDisc"}
@@ -77,6 +83,11 @@ function Player:new(x, y, playerNo)
 	-- self.collider.oy = G.tile_size/2
 	-- self.collider.w = G.tile_size/2
 	-- self.collider.h = G.tile_size/2
+
+	-- add top label
+	-- self.popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
+	-- self.popup.owner = self
+	-- scene:addEntity(self.popup)
 
 	return self
 end
@@ -89,12 +100,12 @@ function Player:update(dt)
 	self:shootControls()
 	self:updateAnimations()
 
-	-- if self.trailPs then
-	-- 	local x, y = self:getMiddlePosition()
-	-- 	self.trailPs.pos.x = x + _.random(-5,5)
-	-- 	self.trailPs.pos.y = y + 10
-	-- 	self.trailPs.ps:emit(1)
-	-- end
+	if self.trailPs then
+		local x, y = self:getMiddlePosition()
+		self.trailPs.pos.x = x + _.random(-5,5)
+		self.trailPs.pos.y = y + 10
+		self.trailPs.ps:emit(1)
+	end
 end
 
 function Player:updateAnimations()
@@ -237,6 +248,18 @@ function Player:hitByDisc(disc)
 	timer.after(2, function()
 		self:respawn()
 	end)
+
+	-- explode
+	for i=5,1,-1 do
+		timer.after((_.random(0, .2)), function()
+			local radius = 12
+			scene:addEntity(Explosion(self.pos.x + _.random(-radius,radius), self.pos.y + _.random(-radius,radius)))
+		end)
+	end
+	
+	-- 127,138,150
+	-- {70,100,107}
+	scene:addEntity(Circle(self.pos.x, self.pos.y, 16, 16, {255,255,255}, 0.07))
 
 	self.isSolid = false
 end

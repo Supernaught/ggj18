@@ -18,6 +18,7 @@
 
 local _ = require "lib.lume"
 local vector = require "lib.hump.vector-light"
+local Vec = require "lib.hump.vector"
 local System = require "lib.knife.system"
 
 local movableSystem = System(
@@ -29,6 +30,7 @@ local movableSystem = System(
 		-- Update velocity
 		vel.x = vel.x + accel.x * dt
 		vel.y = vel.y + accel.y * dt
+
 		-- Update max velocity
 		if maxVel.x > 0 and math.abs(vel.x) > maxVel.x then
 			vel.x = maxVel.x * _.sign(vel.x)
@@ -37,6 +39,7 @@ local movableSystem = System(
 			vel.y = maxVel.y * _.sign(vel.y)
 		end
 		-- Update position
+		-- local v = Vec(vel.x, vel.y):normalized()
 		e.pos.x = e.pos.x + vel.x * dt
 		e.pos.y = e.pos.y + vel.y * dt
 		-- Apply drag if not accelerating

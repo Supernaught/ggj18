@@ -8,8 +8,8 @@ G = {
   fullscreen = false,
   debug = false,
 
-  platformer = false, -- used for gravity logic in movableSystem
-  gravity = -1500,
+  platformer = true, -- used for gravity logic in movableSystem
+  gravity = -1000,
 
   layers = {
     bg         = 100,
