@@ -25,15 +25,13 @@ function Popup:new(x, y, text, width, align, fontSize, font, fontScale)
 	-- self.offset.x = self.sprite:getWidth()/2
 	self.offset.x = width/2
 
-	self.modifierPos = { x = 0, y = 20 }
-	flux.to(self.modifierPos, 2, { y = self.modifierPos.y - 30 }):ease("elasticout"):oncomplete(function() self:selfDestructIn(1) end)
+	self.modifierPos = { x = 0, y = 10 }
+	flux.to(self.modifierPos, 1, { y = self.modifierPos.y - 20 }):ease("elasticout"):oncomplete(function() self:selfDestructIn(1) end)
 
 	return self
 end
 
 function Popup:update(dt)
-	flux.update(dt)
-
 	if self.owner then
 		self.pos.x = self.owner.pos.x
 		self.pos.y = self.owner.pos.y

@@ -11,6 +11,7 @@ local Circle = require "entities.circle"
 local Popup = require "entities.popup"
 local Disc = require "entities.disc"
 local Bullet = require "entities.bullet"
+local PopupAnimation = require "entities.popupAnimation"
 
 local Player = GameObject:extend()
 
@@ -20,6 +21,8 @@ function Player:new(x, y, playerNo)
 
 	-- self.shadow = Circle(self.pos.x, self.pos.y, 16,3)
 	-- scene:addEntity(self.shadow)
+
+	self.hp = 3
 
 	-- disc behavior
 	self.hasDisc = false
@@ -40,15 +43,28 @@ function Player:new(x, y, playerNo)
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
-	self.idleAnimation = anim8.newAnimation(g('1-3',1), 0.1)
-	self.runningAnimation = anim8.newAnimation(g('1-3',1), 0.1)
-	self.dashAnimation = anim8.newAnimation(g('1-3',1), 0.1)
+
+	local row1,row2,row3=2,1,1
+
+	if playerNo == 1 then
+		row1,row2,row3=1,2,3
+	elseif playerNo == 2 then
+		row1,row2,row3=4,5,6
+	elseif playerNo == 3 then
+		row1,row2,row3=7,8,9
+	elseif playerNo == 4 then
+		row1,row2,row3=10,11,12
+	end
+
+	self.idleAnimation = anim8.newAnimation(g('1-4',row2), 0.1)
+	self.runningAnimation = anim8.newAnimation(g('1-10',row1), 0.05)
+	self.dashAnimation = anim8.newAnimation(g('1-3',row3), 0.1)
 	self.animation = self.idleAnimation
 
 	-- physics
 	self.isSolid = true
 	self.direction = Direction.right
-	local maxVelocity = 180
+	local maxVelocity = 140
 	local speed = maxVelocity * 20
 	local drag = maxVelocity * 20
 
@@ -78,7 +94,7 @@ function Player:new(x, y, playerNo)
 		oy = 6 - self.offset.y
 	}
 	self.collidableTags = {"isEnemy"}
-	self.nonCollidableTags = {"isDisc"}
+	self.nonCollidableTags = {"isDisc", "isPowerup"}
 	-- self.collider.ox = G.tile_size/2 - G.tile_size/4
 	-- self.collider.oy = G.tile_size/2
 	-- self.collider.w = G.tile_size/2
@@ -88,11 +104,13 @@ function Player:new(x, y, playerNo)
 	-- self.popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
 	-- self.popup.owner = self
 	-- scene:addEntity(self.popup)
-
 	return self
 end
 
 function Player:collide(other)
+	if other.isPowerup and not other.toRemove then
+		self:pickupPowerup(other)
+	end
 end
 
 function Player:update(dt)
@@ -144,17 +162,45 @@ function Player:shootControls()
 end
 
 function Player:pickDisc()
+	if self.hasDisc then return end
+
+	self.arrow = PopupAnimation(self, self.pos.x, self.pos.y - 10)
+	scene:addEntity(self.arrow)
 	self.hasDisc = true
+end
+
+function Player:removeArrow()
+	if not self.arrow then return end
+	self.arrow.toRemove = true
+	self.arrow = nil
 end
 
 function Player:releaseDisc()
 	-- local angle = (self.direction == Direction.right and 0 or 180)
 	local disc = Disc(self.pos.x, self.pos.y)
+
+	local colors = {}
+
+	if self.playerNo == 1 then
+		colors = G.colors.p_red
+	elseif self.playerNo == 2 then
+		colors = G.colors.p_blue
+	elseif self.playerNo == 3 then
+		colors = G.colors.p_green
+	elseif self.playerNo == 4 then
+		colors = G.colors.p_orange
+	end
+
+	disc.trailPs.ps:setColors(colors)
+
 	scene:addEntity(disc)
+
 	disc:shoot(self.aimAngle, self.charge)
 	disc.owner = self
 	self.hasDisc = false
 	self.charge = 0
+
+	self:removeArrow()
 end
 
 function Player:moveControls(dt)
@@ -239,15 +285,15 @@ function Player:moveControls(dt)
 end
 
 function Player:hitByDisc(disc)
+	-- die
+	self:removeArrow()
+
 	scene.camera:shake(15)
 	self.isAlive = false
 	self.movable.velocity.x = 0
 	self.movable.velocity.y = 0
 	self.movable.acceleration.x = 0
 	self.movable.acceleration.y = 0
-	timer.after(2, function()
-		self:respawn()
-	end)
 
 	-- explode
 	for i=5,1,-1 do
@@ -256,13 +302,38 @@ function Player:hitByDisc(disc)
 			scene:addEntity(Explosion(self.pos.x + _.random(-radius,radius), self.pos.y + _.random(-radius,radius)))
 		end)
 	end
+	scene:addEntity(Circle(self.pos.x, self.pos.y, 16, 16, {255,255,255}, 0.08))
+
+
+	-- local smoke = Particles(self.pos.x, self.pos.y)
+	-- local smokeParticles = require "entities.particles.smoke"
+	-- smoke:load(smokeParticles)
+	-- smoke:selfDestructIn(5)
+	-- smoke.ps:emit(1000)
+
+	-- scene:addEntity(smoke)
 	
 	-- 127,138,150
 	-- {70,100,107}
-	scene:addEntity(Circle(self.pos.x, self.pos.y, 16, 16, {255,255,255}, 0.07))
 
 	self.isSolid = false
+
+	self.hp = self.hp - 1
+	if self.hp <= 0 and not scene.isGameOver then
+		scene:playerDead(self.playerNo)
+	else
+		timer.after(2, function()
+			self:respawn()
+		end)
+	end
 end
+
+function Player:pickupPowerup(powerup)
+	local popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
+	popup.owner = self
+	-- scene:addEntity(popup)
+end
+
 
 function Player:respawn()
 	self.isAlive = true

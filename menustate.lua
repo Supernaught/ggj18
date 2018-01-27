@@ -26,7 +26,6 @@ end
 
 function MenuState:stateUpdate(dt)
 	MenuState.super.stateUpdate(self, dt)
-	flux.update(dt)
 
 	if Input.wasKeyPressed('return') then
 		Gamestate.switch(PlayState())

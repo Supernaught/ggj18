@@ -7,6 +7,7 @@ local Gamestate = require "lib.hump.gamestate"
 local gamera = require "lib.gamera"
 local push = require "lib.push"
 local shack = require "lib.shack"
+local flux = require "lib.flux"
 local timer = require "lib.hump.timer"
 
 local assets = require "assets"
@@ -38,17 +39,29 @@ function love.load()
 		["zoomOut"] = {"2"},
 		["rotate"] = {"3"},
 
-		["1_left"] = {"a"},
-		["1_right"] = {"d"},
-		["1_down"] = {"s"},
-		["1_up"] = {"w"},
-		["1_shoot"]  = { "space", gamepad = { "a" }},
+		["3_left"] = {"a"},
+		["3_right"] = {"d"},
+		["3_down"] = {"s"},
+		["3_up"] = {"w"},
+		["3_shoot"]  = { "space", gamepad = { "a" }},
 
-		["2_left"] = {"left"},
-		["2_right"] = {"right"},
-		["2_down"] = {"down"},
-		["2_up"] = {"up"},
-		["2_shoot"]  = { "]", gamepad = { "a" } },
+		["4_left"] = {"left"},
+		["4_right"] = {"right"},
+		["4_down"] = {"down"},
+		["4_up"] = {"up"},
+		["4_shoot"]  = { "]", gamepad = { "a" } },
+
+		["1_left"] = {""},
+		["1_right"] = {""},
+		["1_down"] = {""},
+		["1_up"] = {""},
+		["1_shoot"]  = {""},
+
+		["2_left"] = {""},
+		["2_right"] = {""},
+		["2_down"] = {""},
+		["2_up"] = {""},
+		["2_shoot"]  = {""},
 	})
 
 	-- setup Gamestate
@@ -62,6 +75,7 @@ end
 function love.update(dt)
 	shack:update(dt)
 	timer.update(dt)
+	flux.update(dt)
 end
 
 function love.draw()
