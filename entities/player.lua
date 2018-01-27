@@ -21,7 +21,7 @@ function Player:new(x, y, playerNo)
 	-- draw/sprite component
 	self.layer = G.layers.player
 	self.isLayerYPos = true
-	self.sprite = assets.player
+	self.sprite = assets.spritesheet
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
@@ -130,7 +130,7 @@ function Player:shoot()
 	local b = Bullet(x, y, angle, speed, self)
 	b.target = self:getNearestEntity(nil, "enemy")
 	-- if b.target then print(b.target.name) end
-	
+
 	scene:addEntity(b)
 end
 
