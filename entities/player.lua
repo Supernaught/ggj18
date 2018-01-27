@@ -35,6 +35,8 @@ function Player:new(x, y, playerNo)
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
 	self.idleAnimation = anim8.newAnimation(g('1-3',1), 0.1)
+	self.runningAnimation = anim8.newAnimation(g('1-3',1), 0.1)
+	self.dashAnimation = anim8.newAnimation(g('1-3',1), 0.1)
 	self.animation = self.idleAnimation
 
 	-- physics
@@ -85,6 +87,7 @@ end
 function Player:update(dt)
 	self:moveControls(dt)
 	self:shootControls()
+	self:updateAnimations()
 
 	-- if self.trailPs then
 	-- 	local x, y = self:getMiddlePosition()
@@ -92,6 +95,20 @@ function Player:update(dt)
 	-- 	self.trailPs.pos.y = y + 10
 	-- 	self.trailPs.ps:emit(1)
 	-- end
+end
+
+function Player:updateAnimations()
+	if self.movable.acceleration.x < 0 then
+		self.flippedH = true
+	elseif self.movable.acceleration.x > 0 then
+		self.flippedH = false
+	end
+
+	if self.movable.velocity.x == 0 and self.movable.velocity.y == 0 then
+		self.animation = self.idleAnimation
+	else
+		self.animation = self.runningAnimation
+	end
 end
 
 -- function Player:getMidPos()

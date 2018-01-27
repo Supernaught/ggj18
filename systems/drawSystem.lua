@@ -17,6 +17,7 @@ local drawSystem = System(
 		local angle = e.angle or 0
 
 		if e.animation then
+			e.animation.flippedH = e.flippedH or false
 			e.animation:draw(e.sprite, x, y, angle, sx, sy)
 		elseif e.sprite then
 			love.graphics.draw(e.sprite, x, y, angle, sx, sy)
