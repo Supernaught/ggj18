@@ -14,7 +14,7 @@ local MenuState = Scene:extend()
 
 function MenuState:enter()
 	MenuState.super.enter(self)
-	local titleText = UIText(0, -20, "GAME TITLE", nil, nil, nil, assets.font_lg)
+	local titleText = UIText(0, -20, "GGJ18 GAME", nil, nil, nil, assets.font_lg)
 	local subtitle = UIText(0, love.graphics.getHeight()/G.scale - 50, "PRESS START TO PLAY", nil, nil, 24, assets.font_sm)
 
 	self:addEntity(subtitle)

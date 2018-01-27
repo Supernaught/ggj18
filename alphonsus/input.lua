@@ -53,6 +53,10 @@ function Input.isAxisDown(joystickId, axis, operator, threshold)
 	end
 end
 
+function Input.isGamepadButtonDown(button, joystickId)
+	return love.joystick.getJoysticks()[joystickId]:isGamepadDown(button)
+end
+
 function Input.wasGamepadPressed(button, joystickId)
 	if joystickId then
 		if Input.gamepadPressed[joystickId] then return Input.gamepadPressed[joystickId][button] end

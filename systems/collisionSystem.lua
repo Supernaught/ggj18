@@ -38,8 +38,8 @@ local collisionSystem = System(
 				col1.platformer.isGrounded = col.normal.y < 0
 			end
 
-			if col1.collide then col1:collide(col2) end
-			if col2.collide then col2:collide(col1) end
+			if col1.collide then col1:collide(col2, col) end
+			if col2.collide then col2:collide(col1, col) end
 		end
 	end
 )

@@ -1,9 +1,9 @@
 G = {
   title = "Game Title",
-  width = 240,
-  height = 180,
   scale = 3,
   tile_size = 16,
+  width = 16 * 18,
+  height = 16 * 14,
   fullscreen = true,
   fullscreen = false,
   debug = false,
@@ -21,6 +21,22 @@ G = {
     explosion  = 600,
     bullet     = 700,
     ui         = 999,
+  },
+
+  colors = {
+    red = {255,100,100},
+    green = {100,255,100},
+  },
+
+  direction = {
+    left = 'left',
+    right = 'right',
+    up = 'up',
+    down = 'down',
+    upleft = 'upleft',
+    upright = 'upright',
+    downleft = 'downleft',
+    downright = 'downright',
   }
 }
 

@@ -31,7 +31,7 @@ function Camera:new(followSpeed, zoomSpeed)
 	self.cam:setScale(self.constantZoom * self.zoom)
 
 	-- setup default boundaries
-	self.cam:setWorld(0,0,10000,10000)
+	-- self.cam:setWorld(0,0,10000,10000)
 
 	self.followTarget = nil -- must be GameObject type
 	self.followSpeed = followSpeed or 10

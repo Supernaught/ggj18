@@ -11,8 +11,9 @@ local Gamestate = require "lib.hump.gamestate"
 local Square = require "entities.square"
 local Player = require "entities.player"
 local Bullet = require "entities.bullet"
-local Enemy = require "entities.enemy"
-local TileMap = require "alphonsus.tilemap"
+local Disc = require "entities.disc"
+-- local Enemy = require "entities.enemy"
+-- local TileMap = require "alphonsus.tilemap"
 
 local PlayState = Scene:extend()
 
@@ -32,34 +33,32 @@ function PlayState:enter()
 	scene = self
 
 	-- setup tile map
-	tileMap = TileMap(nil, nil, self.bumpWorld)
-	self:addEntity(tileMap)
+	-- tileMap = TileMap(nil, nil, self.bumpWorld)
+	-- self:addEntity(tileMap)
 
 	-- setup players
-	player = Player(300, 50, 1)
-	player2 = Player(200, 50, 2)
+	player = Player(G.width - G.tile_size * 4, 80, 1)
+	player2 = Player(G.tile_size * 3, 80, 2)
 
 	self:addEntity(player)
 	self:addEntity(player2)
 
 	middlePoint = GameObject(getMiddlePoint(player.pos, player2.pos),0,0)
 	middlePoint.collider = nil
-	
-	-- spawn random tiles
-	-- for i=10,30 do
-	-- 	self:addEntity(Square(i * G.tile_size, 10 * G.tile_size))
-	-- end
-	-- self:addEntity(Square(10 * G.tile_size, 12 * G.tile_size))
-	-- self:addEntity(Square(11 * G.tile_size, 8 * G.tile_size))
-	-- self:addEntity(Square(10 * G.tile_size, 8 * G.tile_size))
 
-	-- add sample enemy
-	self:addEntity(Enemy(14 * G.tile_size, 7 * G.tile_size))
+	-- add borders
+	self:addEntity(Square(0, 0, {255,255,255}, G.tile_size, G.height))
+	self:addEntity(Square(G.width-G.tile_size, 0, {255,255,255}, G.tile_size, G.height))
+	self:addEntity(Square(0, 0, {255,255,255}, G.width, G.tile_size))
+	self:addEntity(Square(0, G.height-16, {255,255,255}, G.width, G.tile_size))
+
+	self:addEntity(Disc(G.width/2, G.width/2))
+
 
 	-- setup camera
-	self.camera:setPosition(middlePoint.pos.x, middlePoint.pos.y)
-	self.camera:startFollowing(middlePoint, 0, 0)
-	self.camera.followSpeed = 5
+	-- self.camera:setPosition(middlePoint.pos.x, middlePoint.pos.y)
+	-- self.camera:startFollowing(middlePoint, 0, 0)
+	-- self.camera.followSpeed = 5
 
 	-- setup shaders
 	PaletteSwitcher.init('assets/img/palettes.png', 'alphonsus/shaders/palette.fs');
@@ -93,7 +92,7 @@ function PlayState:stateUpdate(dt)
  	end
 
  	if Input.wasKeyPressed('r') then
-		Gamestate.switch(self)
+		Gamestate.switch(PlayState())
 	end
 
 	if Input.wasKeyPressed('z') then

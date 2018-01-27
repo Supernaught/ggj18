@@ -10,6 +10,8 @@ local System = require "lib.knife.system"
 local drawSystem = System(
 	{ "draw" },
 	function(draw, e)
+		if not e.isAlive then return end
+		
 		local x, y = e.pos.x, e.pos.y
 		local sx, sy = e.scale.x or 1, e.scale.y or 1
 		local angle = e.angle or 0
