@@ -23,6 +23,10 @@ function Square:new(x, y, color, w, h)
 	return self
 end
 
+function Square:collisionFilter(other)
+	return "cross"
+end
+
 function Square:draw()
 	love.graphics.setColor(self.color)
 	love.graphics.rectangle("fill", self.pos.x, self.pos.y, self.width, self.height)

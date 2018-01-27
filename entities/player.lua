@@ -6,6 +6,7 @@ local anim8 = require "lib.anim8"
 local _ = require "lib.lume"
 local assets = require "assets"
 
+local Disc = require "entities.disc"
 local Bullet = require "entities.bullet"
 
 local Player = GameObject:extend()
@@ -15,9 +16,9 @@ function Player:new(x, y, playerNo)
 	self.name = "Player"
 
 	-- disc behavior
+	self.hasDisc = false
 	self.disc = nil
 	self.isAiming = false
-	-- self.aimDirection = nil
 	self.aimAngle = nil
 	self.charge = 0
 
@@ -75,12 +76,6 @@ function Player:new(x, y, playerNo)
 	-- self.collider.w = G.tile_size/2
 	-- self.collider.h = G.tile_size/2
 
-	-- platformer component
-	-- self.platformer = {
-	-- 	isGrounded = false,
-	-- 	jumpForce = -maxVelocity,
-	-- }
-
 	return self
 end
 
@@ -97,16 +92,6 @@ function Player:update(dt)
 	-- 	self.trailPs.pos.y = y + 10
 	-- 	self.trailPs.ps:emit(1)
 	-- end
-
-	-- if self.platformer then
-	-- 	local jump = love.keyboard.isDown('z')
-
-	-- 	if jump then
-	-- 		self.movable.drag.y = G.gravity/2
-	-- 	else
-	-- 		self.movable.drag.y = G.gravity
-	-- 	end
-	-- end
 end
 
 -- function Player:getMidPos()
@@ -114,7 +99,7 @@ end
 -- end
 
 function Player:shootControls()
-	if self.isAlive then
+	if self.isAlive and self.hasDisc then
 		if Input.isDown(self.playerNo .. '_shoot') or Input.isGamepadButtonDown('a', self.playerNo) then
 			self.isAiming = true
 
@@ -124,28 +109,23 @@ function Player:shootControls()
 		else
 			if self.isAiming == true then
 				self.isAiming = false
-				self:shoot()
+				self:releaseDisc()
 			end
 		end
-		-- if Input.wasPressed(self.playerNo .. '_shoot') or Input.wasGamepadPressed('a', self.playerNo) then
-		-- 	self:shoot()
-		-- end
 	end
 end
 
-function Player:jump()
-	if self.platformer and self.platformer.isGrounded then
-		self.platformer.isGrounded = false
-		self.movable.velocity.y = self.platformer.jumpForce
-	end
+function Player:pickDisc()
+	self.hasDisc = true
 end
 
-function Player:shoot()
+function Player:releaseDisc()
 	-- local angle = (self.direction == Direction.right and 0 or 180)
-	-- local speed = 150
-	-- local x, y = self.pos.x, self.pos.y
-	print("SHOOT " .. self.charge)
-	if self.disc then self.disc:shoot(self.aimAngle, self.charge) return end
+	local disc = Disc(self.pos.x, self.pos.y)
+	scene:addEntity(disc)
+	disc:shoot(self.aimAngle, self.charge)
+	disc.owner = self
+	self.hasDisc = false
 	self.charge = 0
 end
 
@@ -157,7 +137,7 @@ function Player:moveControls(dt)
 	local up = Input.isDown(self.playerNo .. '_up') or Input.isAxisDown(self.playerNo, 'lefty', '<')
 	local down = Input.isDown(self.playerNo .. '_down') or Input.isAxisDown(self.playerNo, 'lefty', '>')
 
-	if self.disc and self.isAiming then
+	if self.hasDisc and self.isAiming then
 		self.movable.acceleration.x = 0
 		self.movable.acceleration.y = 0
 
@@ -172,37 +152,38 @@ function Player:moveControls(dt)
 		elseif down then self.aimAngle = 90
 		end
 
-		if left then
-			if up or down then
-				self.disc.pos.x = self.pos.x - 16
-			else
-				self.disc.pos.x = self.pos.x - 16
-				self.disc.pos.y = self.pos.y
-			end
-		elseif right then
-			if up or down then
-				self.disc.pos.x = self.pos.x + 16
-			else
-				self.disc.pos.x = self.pos.x + 16
-				self.disc.pos.y = self.pos.y
-			end
-		end
+		-- if left then
+		-- 	if up or down then
+		-- 		self.disc.pos.x = self.pos.x - 16
+		-- 	else
+		-- 		self.disc.pos.x = self.pos.x - 16
+		-- 		self.disc.pos.y = self.pos.y
+		-- 	end
+		-- elseif right then
+		-- 	if up or down then
+		-- 		self.disc.pos.x = self.pos.x + 16
+		-- 	else
+		-- 		self.disc.pos.x = self.pos.x + 16
+		-- 		self.disc.pos.y = self.pos.y
+		-- 	end
+		-- end
 
-		if up then
-			if left or right then
-				self.disc.pos.y = self.pos.y - 16
-			else
-				self.disc.pos.y = self.pos.y - 16
-				self.disc.pos.x = self.pos.x
-			end
-		elseif down then
-			if left or right then
-				self.disc.pos.y = self.pos.y + 16
-			else
-				self.disc.pos.y = self.pos.y + 16
-				self.disc.pos.x = self.pos.x
-			end
-		end
+		-- if up then
+		-- 	if left or right then
+		-- 		self.disc.pos.y = self.pos.y - 16
+		-- 	else
+		-- 		self.disc.pos.y = self.pos.y - 16
+		-- 		self.disc.pos.x = self.pos.x
+		-- 	end
+		-- elseif down then
+		-- 	if left or right then
+		-- 		self.disc.pos.y = self.pos.y + 16
+		-- 	else
+		-- 		self.disc.pos.y = self.pos.y + 16
+		-- 		self.disc.pos.x = self.pos.x
+		-- 	end
+		-- end
+
 		return
 	end
 
@@ -230,6 +211,7 @@ function Player:moveControls(dt)
 end
 
 function Player:hitByDisc(disc)
+	scene.camera:shake(15)
 	self.isAlive = false
 	self.movable.velocity.x = 0
 	self.movable.velocity.y = 0
@@ -238,10 +220,13 @@ function Player:hitByDisc(disc)
 	timer.after(2, function()
 		self:respawn()
 	end)
+
+	self.isSolid = false
 end
 
 function Player:respawn()
 	self.isAlive = true
+	self.isSolid = true
 end
 
 function Player:draw()

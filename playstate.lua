@@ -54,7 +54,6 @@ function PlayState:enter()
 
 	self:addEntity(Disc(G.width/2, G.width/2))
 
-
 	-- setup camera
 	-- self.camera:setPosition(middlePoint.pos.x, middlePoint.pos.y)
 	-- self.camera:startFollowing(middlePoint, 0, 0)
