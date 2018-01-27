@@ -25,7 +25,7 @@ function Dummy:new(x, y, w, h)
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
-	self.animation = anim8.newAnimation(g('1-3',1), 0.1)
+	self.animation = anim8.newAnimation(g('1-1',19), 0.1)
 
 	-- movable component
 	local maxVelocity = 200
@@ -42,7 +42,7 @@ function Dummy:new(x, y, w, h)
 end
 
 function Dummy:update()
-	self.angle = self.angle + 0.3
+	self.angle = self.angle + 0.2
 end
 
 function Dummy:draw()

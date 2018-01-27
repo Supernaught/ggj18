@@ -34,8 +34,8 @@ function Player:new(x, y, playerNo)
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
 	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
-	self.idleAnimation = anim8.newAnimation(g('1-3',1), 0.1)
-	self.runningAnimation = anim8.newAnimation(g('1-3',1), 0.1)
+	self.idleAnimation = anim8.newAnimation(g('1-4',2), 0.1)
+	self.runningAnimation = anim8.newAnimation(g('1-10',1), 0.05)
 	self.dashAnimation = anim8.newAnimation(g('1-3',1), 0.1)
 	self.animation = self.idleAnimation
 
