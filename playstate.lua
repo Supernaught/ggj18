@@ -29,7 +29,7 @@ local player4 = nil
 local middlePoint = {}
 local tileMap = {}
 
-local noOfPlayers = 4
+local noOfPlayers = 2
 local remainingPlayers = {}
 
 -- helper function
@@ -107,9 +107,9 @@ end
 function PlayState:stateUpdate(dt)
 	PlayState.super.stateUpdate(self, dt)
 
-	local x, y = getMiddlePoint(player1.pos, player2.pos)
-	middlePoint.pos.x = x
-	middlePoint.pos.y = y
+	-- local x, y = getMiddlePoint(player1.pos, player2.pos)
+	-- middlePoint.pos.x = x
+	-- middlePoint.pos.y = y
 
 	local d = _.distance(player1.pos.x, player1.pos.y, player2.pos.x, player2.pos.y)
 

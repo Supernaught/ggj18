@@ -165,12 +165,14 @@ function Disc:collide(other, col)
 end
 
 function Disc:update(dt)
+	self.angle = self.angle + 0.2
+
 	self.color = (self.status == status.thrown) and G.colors.red or G.colors.green
 	local vel = self.movable.velocity
 
 	local v = Vector(vel.x, vel.y):normalized()
-	self.trailPs.pos.x = self.pos.x + (v.x*5)
-	self.trailPs.pos.y = self.pos.y + (v.y*5)
+	self.trailPs.pos.x = self.pos.x + (v.x*5) + _.random(-3,3)
+	self.trailPs.pos.y = self.pos.y + (v.y*5) + _.random(-3,3)
 
 	if self.trailPs and self.owner then
 		if math.abs(vel.x) < 30 and math.abs(vel.y) < 30 then
@@ -180,7 +182,7 @@ function Disc:update(dt)
 
 		if (math.abs(math.floor(vel.x)) > 1 or math.abs(math.floor(vel.y)) > 1) then
 			-- local x, y = self:getMiddlePosition()
-			self.trailPs.ps:emit(1)
+			self.trailPs.ps:emit(math.random(2,5))
 		end
 	end
 

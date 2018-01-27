@@ -34,7 +34,7 @@ function Camera:new(followSpeed, zoomSpeed)
 	-- self.cam:setWorld(0,0,10000,10000)
 
 	self.followTarget = nil -- must be GameObject type
-	self.followSpeed = followSpeed or 10
+	self.followSpeed = followSpeed or 3
 	self.zoomSpeed = zoomSpeed or 3
 
 	return self
@@ -68,7 +68,7 @@ function Camera:update(dt)
 		self.pos.y = _.lerp(self.pos.y, f.pos.y, dt * self.followSpeed)
 	end
 	local z = _.lerp(self.cam.scale, self.zoom * self.constantZoom, dt * self.zoomSpeed)
-	self.cam:setScale(z)
+	-- self.cam:setScale(z)
 	self.cam:setPosition(math.floor(self.pos.x + self.offset.x), math.floor(self.pos.y + self.offset.y))
 end
 

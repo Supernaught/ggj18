@@ -4,6 +4,7 @@ local Input = require "alphonsus.input"
 local Particles = require "alphonsus.particles"
 local anim8 = require "lib.anim8"
 local _ = require "lib.lume"
+local Vector = require "lib.hump.vector"
 local assets = require "assets"
 
 local Explosion = require "entities.explosion"
@@ -282,6 +283,10 @@ function Player:moveControls(dt)
 	else
 		self.movable.acceleration.y = 0
 	end
+
+	-- local v = Vector(self.movable.acceleration.x,self.movable.acceleration.y):normalized()
+	-- self.movable.acceleration.x = v.x * self.movable.speed.x
+	-- self.movable.acceleration.y = v.y * self.movable.speed.y
 end
 
 function Player:hitByDisc(disc)
