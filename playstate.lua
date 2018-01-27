@@ -12,8 +12,7 @@ local Square = require "entities.square"
 local Player = require "entities.player"
 local Bullet = require "entities.bullet"
 local Disc = require "entities.disc"
--- local Enemy = require "entities.enemy"
--- local TileMap = require "alphonsus.tilemap"
+local TileMap = require "alphonsus.tilemap"
 
 local PlayState = Scene:extend()
 
@@ -33,8 +32,8 @@ function PlayState:enter()
 	scene = self
 
 	-- setup tile map
-	-- tileMap = TileMap(nil, nil, self.bumpWorld)
-	-- self:addEntity(tileMap)
+	tileMap = TileMap("assets/maps/level.lua", nil, nil, self.bumpWorld)
+	self:addEntity(tileMap)
 
 	-- setup players
 	player = Player(G.width - G.tile_size * 4, 80, 1)
@@ -47,10 +46,10 @@ function PlayState:enter()
 	middlePoint.collider = nil
 
 	-- add borders
-	self:addEntity(Square(0, 0, {255,255,255}, G.tile_size, G.height))
-	self:addEntity(Square(G.width-G.tile_size, 0, {255,255,255}, G.tile_size, G.height))
-	self:addEntity(Square(0, 0, {255,255,255}, G.width, G.tile_size))
-	self:addEntity(Square(0, G.height-16, {255,255,255}, G.width, G.tile_size))
+	-- self:addEntity(Square(0, 0, {255,255,255}, G.tile_size, G.height))
+	-- self:addEntity(Square(G.width-G.tile_size, 0, {255,255,255}, G.tile_size, G.height))
+	-- self:addEntity(Square(0, 0, {255,255,255}, G.width, G.tile_size))
+	-- self:addEntity(Square(0, G.height-16, {255,255,255}, G.width, G.tile_size))
 
 	self:addEntity(Disc(G.width/2, G.width/2))
 

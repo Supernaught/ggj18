@@ -5,7 +5,7 @@ local sti = require "lib.sti"
 local TileMap = GameObject:extend()
 local assets =  require "assets"
 
-function TileMap:new(x, y, bumpWorld)
+function TileMap:new(mapPath, x, y, bumpWorld)
 	TileMap.super.new(self, x or 0, y or 0)
 	self.name = "TileMap"
 	self.isTileMap = true
@@ -14,7 +14,7 @@ function TileMap:new(x, y, bumpWorld)
 
 	-- self.map = sti("maps/plain.lua")
 	-- self.map = sti("maps/plain2.lua")
-	local map = sti("assets/maps/map.lua", { "bump" })
+	local map = sti(mapPath, { "bump" })
 	self.map = map
 	self.map:bump_init(self.bumpWorld)
 	self.map:resize(1000,1000)
