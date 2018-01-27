@@ -13,6 +13,7 @@ local Player = require "entities.player"
 local Bullet = require "entities.bullet"
 local Disc = require "entities.disc"
 local TileMap = require "alphonsus.tilemap"
+local Dummy = require "entities.Dummy"
 
 local PlayState = Scene:extend()
 
@@ -30,6 +31,9 @@ end
 function PlayState:enter()
 	PlayState.super.enter(self)
 	scene = self
+
+	-- dummy
+	self:addEntity(Dummy(50,50))
 
 	-- setup tile map
 	tileMap = TileMap("assets/maps/level.lua", nil, nil, self.bumpWorld)

@@ -16,11 +16,13 @@ local drawSystem = System(
 		local sx, sy = e.scale.x or 1, e.scale.y or 1
 		local angle = e.angle or 0
 
+		local ox, oy = e.offset.x, e.offset.y
+
 		if e.animation then
 			e.animation.flippedH = e.flippedH or false
-			e.animation:draw(e.sprite, x, y, angle, sx, sy)
+			e.animation:draw(e.sprite, x, y, angle, sx, sy, ox, oy)
 		elseif e.sprite then
-			love.graphics.draw(e.sprite, x, y, angle, sx, sy)
+			love.graphics.draw(e.sprite, x, y, angle, sx, sy, ox, oy)
 		end
 
 		if e.draw then e:draw() end
