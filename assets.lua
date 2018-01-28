@@ -49,7 +49,9 @@ assets.font2_sm = love.graphics.newFont("assets/fonts/press_start.ttf", 8)
 -- Sfx
 
 -- SFX
--- assets.bullet_sfx_decoder = love.sound.newDecoder("assets/sfx/shoot1.wav")
+assets.music1 = love.audio.newSource("assets/sfx/music1.ogg")
+assets.music2 = love.audio.newSource("assets/sfx/music2.ogg")
+
 assets.bullet_sfx_decoder = love.sound.newDecoder("assets/sfx/bullet_sfx.wav")
 assets.bullet_sfx = love.audio.newSource(assets.bullet_sfx_decoder)
 
@@ -73,5 +75,7 @@ assets.dash2_sfx = love.audio.newSource(love.sound.newDecoder("assets/sfx/dash2.
 
 assets.powerup_sfx = love.audio.newSource(love.sound.newDecoder("assets/sfx/powerup.wav"))
 assets.pickdisc_sfx = love.audio.newSource(love.sound.newDecoder("assets/sfx/pickdisc.wav"))
+
+assets.sword_sfx = love.audio.newSource(love.sound.newDecoder("assets/sfx/sword.mp3"))
 
 return assets

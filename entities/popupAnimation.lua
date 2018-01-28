@@ -32,6 +32,7 @@ end
 function PopupAnimation:update()
 	self.pos.x = self.owner.pos.x + self.modifierPos.x
 	self.pos.y = self.owner.pos.y + self.modifierPos.y
+	self.layer = self.owner.layer
 end
 
 function PopupAnimation:draw()

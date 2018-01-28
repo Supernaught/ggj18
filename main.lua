@@ -43,12 +43,14 @@ function love.load()
 		["3_right"] = {"d"},
 		["3_down"] = {"s"},
 		["3_up"] = {"w"},
+		-- ["3_dash"]  = {"c"},
 		["3_shoot"]  = { "space", gamepad = { "a" }},
 
 		["4_left"] = {"left"},
 		["4_right"] = {"right"},
 		["4_down"] = {"down"},
 		["4_up"] = {"up"},
+		-- ["4_dash"]  = {"["},
 		["4_shoot"]  = { "]", gamepad = { "a" } },
 
 		["1_left"] = {""},
@@ -56,12 +58,14 @@ function love.load()
 		["1_down"] = {""},
 		["1_up"] = {""},
 		["1_shoot"]  = {""},
+		-- ["1_dash"]  = {""},
 
 		["2_left"] = {""},
 		["2_right"] = {""},
 		["2_down"] = {""},
 		["2_up"] = {""},
 		["2_shoot"]  = {""},
+		-- ["2_dash"]  = {""},
 	})
 
 	-- setup Gamestate
@@ -70,6 +74,8 @@ function love.load()
 	menuState = MenuState()
 	Gamestate.switch(menuState)
 	-- Gamestate.switch(playState)
+
+	setupBgMusic()
 end
 
 function love.update(dt)
@@ -82,7 +88,17 @@ function love.draw()
 end
 
 function setupBgMusic()
-	-- assets.music:setVolume(0.8)
-	-- assets.music:setLooping(true)
-	-- assets.music:play()
+	timer.after(1, function()
+		assets.music1:setVolume(0.8)
+		assets.music1:setLooping(false)
+		assets.music1:play()
+
+		assets.music2:setVolume(1.0)
+		assets.music2:setLooping(true)
+
+		timer.after(30, function()
+			assets.music2:setLooping(true)
+			assets.music2:clone():play()
+		end)
+	end)
 end

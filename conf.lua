@@ -51,7 +51,7 @@ G = {
   },
 
   maxBounces = 3,
-  maxHp = 2,
+  maxHp = 5,
 
   direction = {
     left = 'left',

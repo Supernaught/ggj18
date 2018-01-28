@@ -35,7 +35,7 @@ function Disc:new(x, y)
 	self.isSpeed = false
 
 	-- default speed = 100, default maxVelocity = 300
-	local speed = 100
+	local speed = 120
 	local maxVelocity = 300
 
 	local angle = 150

@@ -24,6 +24,7 @@ function Player:new(x, y, playerNo)
 	-- scene:addEntity(self.shadow)
 
 	self.hp = G.maxHp
+	self.isDashing = false
 
 	-- disc behavior
 	self.hasDisc = false
@@ -85,10 +86,12 @@ function Player:new(x, y, playerNo)
 	}
 
 	-- particles
-	self.trailPs = Particles()
-	local playerTrail = require "entities.particles.playerTrail"
-	-- if self.playerNo == 2 then playerTrail.colors = {82, 127, 157, 255} end
-	self.trailPs:load(playerTrail)
+	self.dashTrailPs = Particles(self.pos.x, self.pos.y, assets.pAvatars[self.playerNo])
+	local dashTrail = require "entities.particles.dashTrail"
+	self.dashTrailPs.layer = self.layer-1
+	self.dashTrailPs:load(dashTrail)
+	self.dashTrailPs.ps:setColors(G.colors[self.playerNo])
+	scene:addEntity(self.dashTrailPs)
 
 	self.aimDiscTrailPs = Particles()
 	local aimDiscTrail = require "entities.particles.aimDiscTrail"
@@ -140,11 +143,15 @@ function Player:update(dt)
 
 	self:updateAnimations()
 
-	if self.trailPs then
-		local x, y = self:getMiddlePosition()
-		self.trailPs.pos.x = x + _.random(-5,5)
-		self.trailPs.pos.y = y + 10
-		self.trailPs.ps:emit(1)
+	if self.dashTrailPs then
+		local x, y = self.pos.x,self.pos.y
+		self.dashTrailPs.layer = self.layer - 10
+		self.dashTrailPs.pos.x = x
+		self.dashTrailPs.pos.y = y
+
+		if self.isDashing then
+			self.dashTrailPs.ps:emit(1)
+		end
 	end
 end
 
@@ -155,7 +162,9 @@ function Player:updateAnimations()
 		self.flippedH = false
 	end
 
-	if self.movable.velocity.x == 0 and self.movable.velocity.y == 0 then
+	if self.isDashing then
+		self.animation = self.dashAnimation
+	elseif self.movable.velocity.x == 0 and self.movable.velocity.y == 0 then
 		self.animation = self.idleAnimation
 	else
 		self.animation = self.runningAnimation
@@ -166,7 +175,29 @@ end
 -- 	return self.pos.x + self.offset.x, self.pos.y + self.offset.y
 -- end
 
+function Player:dash()
+	self.isDashing = true
+	self.isInvulnerable = true
+	
+	self.movable.maxVelocity.x = 140*3
+	self.movable.maxVelocity.y = 140*3
+
+
+	timer.after(0.1, function()
+		self.isDashing = false
+		self.movable.maxVelocity.x = 140
+		self.movable.maxVelocity.y = 140
+		self.isInvulnerable = false
+	end)
+end
+
 function Player:shootControls()
+	-- if self.isAlive and not self.isDashing then
+	-- 	if Input.wasPressed(self.playerNo..'_dash') or Input.wasGamepadPressed('x', self.playerNo) then
+	-- 		self:dash()
+	-- 	end
+	-- end
+
 	if self.isAlive and self.hasDisc then
 		if Input.isDown(self.playerNo .. '_shoot') or Input.isGamepadButtonDown('a', self.playerNo) then
 			self.isAiming = true
@@ -309,35 +340,42 @@ function Player:moveControls(dt)
 		return
 	end
 
+	local dashModifier = self.isDashing and 10 or 1
+
 	if left and not right then
-		self.movable.acceleration.x = -self.movable.speed.x
+		self.movable.acceleration.x = -self.movable.speed.x * dashModifier
 		self.direction = Direction.left
 		self.aimAngle = 180
 	elseif right and not left then
-		self.movable.acceleration.x = self.movable.speed.x
+		self.movable.acceleration.x = self.movable.speed.x * dashModifier
 		self.direction = Direction.right
 		self.aimAngle = 0
 	else
-		self.movable.acceleration.x = 0
+		if not self.isDashing then
+			self.movable.acceleration.x = 0
+		end
 	end
 
 	if up and not down then
-		self.movable.acceleration.y = -self.movable.speed.y
+		self.movable.acceleration.y = -self.movable.speed.y * dashModifier
 		self.aimAngle = -90
 	elseif down and not up then
-		self.movable.acceleration.y = self.movable.speed.y
+		self.movable.acceleration.y = self.movable.speed.y * dashModifier
 		self.aimAngle = 90
 	else
-		self.movable.acceleration.y = 0
+		if not self.isDashing then
+			self.movable.acceleration.y = 0
+		end
 	end
 
-	-- local v = Vector(self.movable.acceleration.x,self.movable.acceleration.y):normalized()
-	-- self.movable.acceleration.x = v.x * self.movable.speed.x
-	-- self.movable.acceleration.y = v.y * self.movable.speed.y
+	local v = Vector(self.movable.acceleration.x,self.movable.acceleration.y):normalized()
+	self.movable.acceleration.x = v.x * self.movable.speed.x
+	self.movable.acceleration.y = v.y * self.movable.speed.y
 end
 
 function Player:hitByDisc(disc)
-	if self.isInvulnerable and not self.isAlive then return end
+	if self.isInvulnerable then return end
+	if not self.isAlive then return end
 
 	assets.death:clone():play()
 
@@ -423,7 +461,7 @@ function Player:respawn()
 
 	self:blink()
 
-	timer.after(2, function()
+	timer.after(3, function()
 		self.isInvulnerable = false
 		self.isVisible = true
 	end)

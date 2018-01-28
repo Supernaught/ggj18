@@ -49,6 +49,7 @@ function getMiddlePoint(pos1, pos2)
 end
 
 function PlayState:enter()
+
 	PlayState.super.enter(self)
 	scene = self
 
@@ -70,7 +71,7 @@ function PlayState:enter()
 		[4] = 0,
 	}
 
-	timer:clear()
+	-- timer:clear()
 
 	-- dummy
 	-- self:addEntity(Dummy(50,50))
@@ -82,8 +83,6 @@ function PlayState:enter()
 	for i=1,noOfPlayers,1 do
 		table.insert(remainingPlayers,i)
 	end
-
-	tlog.print(remainingPlayers)
 
 	-- setup players
 	-- P1
@@ -134,7 +133,7 @@ function PlayState:enter()
 	effect = moonshine(moonshine.effects.filmgrain)
 	-- effect.filmgrain.size = 2
 
-	timer.after(1, function()
+	timer.after(10, function()
 		self:spawnPowerup()
 	end)
 
@@ -207,7 +206,7 @@ function PlayState:stateUpdate(dt)
 
 	if self.isGameOver and canGoToMenu then
 		if Input.wasKeyPressed('return') or Input.isGamepadButtonDown('start', 1) or Input.isGamepadButtonDown('start', 2) then
-			Gamestate.switch(require "MenuState")
+			Gamestate.switch(require "menustate")
 		end
 	end
 end
@@ -266,21 +265,14 @@ function PlayState:playerKilled(playerNo, killer)
 	if self.isGameOver then return end
 
 	kills[killer] = kills[killer] + 1
-	print("KILLED", playerNo, killer)
-	tlog.print(kills)
-	print("===")
 end
 
 function PlayState:playerDead(playerNo, killer)
 	_.remove(remainingPlayers, playerNo)
 
-	print("PLAYER DEAD")
-	tlog.print(remainingPlayers)
-
 	if #remainingPlayers <= 1 then
 		self:gameOver()
 	end
-	print("===")
 end
 
 function PlayState:gameOver()
@@ -290,30 +282,50 @@ function PlayState:gameOver()
 		local winnerPlayerNo = remainingPlayers[1]
 
 		local y = 65
-		local pWin = Sprite(assets.pAvatars[winnerPlayerNo], G.width/2, y, nil, nil, 2,2)
-		local wins = UIText(0, y+30, "PLAYER " .. winnerPlayerNo .. " WINS!", nil, nil, 24, assets.font2_md)
+		local y1,y2 = y,y+30
+		local headImg = Sprite(assets.pAvatars[winnerPlayerNo], G.width/2, y1-16, nil, nil, 2,2)
+		local winText = UIText(0, y2-16, "PLAYER " .. winnerPlayerNo .. " WINS!", nil, nil, 24, assets.font2_md)
 
-		self:addEntity(wins)
-		self:addEntity(pWin)
+		self:addEntity(headImg)
+		flux.to(headImg.pos, 1, { y = y1 }):ease("elasticout")
+		assets.explode3_sfx:clone():play()
+		
+		timer.after(0.5, function()
+			self:addEntity(winText)
+			assets.explode3_sfx:clone():play()
+			flux.to(winText.pos, 1, { y = y2 }):ease("elasticout")
+		end)
 
-		print("GAMEOVER")
-		tlog.print(kills)
+
+		scene.camera:shake(5)
+
 		for i,r in ipairs(kills) do
 			table.insert(ranking, {playerNo=i,kills=r})
 		end
 
-		tlog.print(ranking)
-		ranking = _.sort(ranking, function(a,b) return a.kills > b.kills end)
-		tlog.print(ranking)
+		local bg = Square(0,0,{0,0,0,150},G.width,G.height)
+		bg.isSolid = false
+		bg.collider = nil
+		self:addEntity(bg)
 
-		timer.after(1, function()
+
+		ranking = _.sort(ranking, function(a,b) return a.kills > b.kills end)
+
+		timer.after(0.5, function()
 			for i,r in ipairs(ranking) do
 				local yPos = y+20+(20*(i+1))
 				local xPos = G.width/2 - 40
 				local w = UIText(xPos, yPos, " X " .. r.kills .. " KILLS", 150, "left", 24, assets.font2_sm)
-				local icon = Sprite(assets.pAvatars[r.playerNo], xPos - 10, yPos, nil, nil)
-				self:addEntity(w)
-				self:addEntity(icon)
+				local icon = Sprite(assets.pAvatars[r.playerNo], xPos - 10, yPos-16, nil, nil)
+
+				timer.after(0.2*i, function()
+					assets.explode3_sfx:clone():play()
+					flux.to(w.pos, 1, {y=yPos}):ease("elasticout")
+					flux.to(icon.pos, 1, {y=yPos}):ease("elasticout")
+					self:addEntity(w)
+					self:addEntity(icon)
+					scene.camera:shake(4)
+				end)
 			end
 
 			canGoToMenu = true
