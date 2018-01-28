@@ -25,6 +25,7 @@ G = {
   },
 
   colors = {
+    bg = {14,17,21,255},
     red = {255,100,100},
     green = {100,255,100},
 
@@ -32,7 +33,24 @@ G = {
     p_blue = {0,139,214,255},
     p_green = {83,171,32,255},
     p_orange = {235,137,49,255},
+
+    [1] = {190,38,51,255},
+    [2] = {0,139,214,255},
+    [3] = {83,171,32,255},
+    [4] = {235,137,49,255},
   },
+
+  powerups = {
+    dual = "dual",
+    speed = "speed",
+    bounce = "bounce",
+    size = "size"
+  },
+  powerups_array = {
+    "dual", "speed", "bounce", "size"
+  },
+
+  maxBounces = 3,
 
   direction = {
     left = 'left',

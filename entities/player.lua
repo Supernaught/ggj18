@@ -31,6 +31,12 @@ function Player:new(x, y, playerNo)
 	self.isAiming = false
 	self.aimAngle = nil
 	self.charge = 0
+	self.aimDisc = {
+		x = -30,
+		y = -30
+	}
+	self.powerups = {}
+	self.isInvulnerable = false
 
 	-- tags
 	self.isPlayer = true
@@ -81,9 +87,14 @@ function Player:new(x, y, playerNo)
 	-- particles
 	self.trailPs = Particles()
 	local playerTrail = require "entities.particles.playerTrail"
-	if self.playerNo == 2 then playerTrail.colors = {82, 127, 157, 255} end
+	-- if self.playerNo == 2 then playerTrail.colors = {82, 127, 157, 255} end
 	self.trailPs:load(playerTrail)
-	-- scene:addEntity(self.trailPs)
+
+	self.aimDiscTrailPs = Particles()
+	local aimDiscTrail = require "entities.particles.aimDiscTrail"
+	self.aimDiscTrailPs:load(aimDiscTrail)
+	self.aimDiscTrailPs.ps:setColors(G.colors[self.playerNo])
+	scene:addEntity(self.aimDiscTrailPs)
 
 	-- collider
 	self.collider = {
@@ -102,16 +113,16 @@ function Player:new(x, y, playerNo)
 	-- self.collider.h = G.tile_size/2
 
 	-- add top label
-	-- self.popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
-	-- self.popup.owner = self
-	-- scene:addEntity(self.popup)
+	self.popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
+	self.popup.owner = self
+	scene:addEntity(self.popup)
 	return self
 end
 
 function Player:collide(other)
-	if other.isPowerup and not other.toRemove then
-		self:pickupPowerup(other)
-	end
+	-- if other.isPowerup and not other.toRemove then
+	-- 	self:pickupPowerup(other)
+	-- end
 end
 
 function Player:update(dt)
@@ -179,25 +190,31 @@ end
 function Player:releaseDisc()
 	-- local angle = (self.direction == Direction.right and 0 or 180)
 	local disc = Disc(self.pos.x, self.pos.y)
-
-	local colors = {}
-
-	if self.playerNo == 1 then
-		colors = G.colors.p_red
-	elseif self.playerNo == 2 then
-		colors = G.colors.p_blue
-	elseif self.playerNo == 3 then
-		colors = G.colors.p_green
-	elseif self.playerNo == 4 then
-		colors = G.colors.p_orange
-	end
-
-	disc.trailPs.ps:setColors(colors)
+	disc.trailPs.ps:setColors(G.colors[self.playerNo])
 
 	scene:addEntity(disc)
 
+	for i,p in ipairs(self.powerups) do
+		if p == G.powerups.bounce then
+			disc.maxBounces = G.maxBounces * 2
+		elseif p == G.powerups.dual then
+			-- create 2nd disc
+			local disc2 = Disc(self.pos.x, self.pos.y)
+			self.aimAngle = self.aimAngle
+			disc2.isFromDual = true
+			disc2.trailPs.ps:setColors(G.colors[self.playerNo])
+			disc2:shoot(self.aimAngle, self.charge)
+			disc2.owner = self
+			scene:addEntity(disc2)
+		elseif p == G.powerups.size then
+		end
+	end
+
+	self.powerups = {}
+
 	disc:shoot(self.aimAngle, self.charge)
 	disc.owner = self
+
 	self.hasDisc = false
 	self.charge = 0
 
@@ -227,37 +244,40 @@ function Player:moveControls(dt)
 		elseif down then self.aimAngle = 90
 		end
 
-		-- if left then
-		-- 	if up or down then
-		-- 		self.disc.pos.x = self.pos.x - 16
-		-- 	else
-		-- 		self.disc.pos.x = self.pos.x - 16
-		-- 		self.disc.pos.y = self.pos.y
-		-- 	end
-		-- elseif right then
-		-- 	if up or down then
-		-- 		self.disc.pos.x = self.pos.x + 16
-		-- 	else
-		-- 		self.disc.pos.x = self.pos.x + 16
-		-- 		self.disc.pos.y = self.pos.y
-		-- 	end
-		-- end
+		if left then
+			if up or down then
+				self.aimDisc.x = self.pos.x - 16
+			else
+				self.aimDisc.x = self.pos.x - 16
+				self.aimDisc.y = self.pos.y
+			end
+		elseif right then
+			if up or down then
+				self.aimDisc.x = self.pos.x + 16
+			else
+				self.aimDisc.x = self.pos.x + 16
+				self.aimDisc.y = self.pos.y
+			end
+		end
 
-		-- if up then
-		-- 	if left or right then
-		-- 		self.disc.pos.y = self.pos.y - 16
-		-- 	else
-		-- 		self.disc.pos.y = self.pos.y - 16
-		-- 		self.disc.pos.x = self.pos.x
-		-- 	end
-		-- elseif down then
-		-- 	if left or right then
-		-- 		self.disc.pos.y = self.pos.y + 16
-		-- 	else
-		-- 		self.disc.pos.y = self.pos.y + 16
-		-- 		self.disc.pos.x = self.pos.x
-		-- 	end
-		-- end
+		if up then
+			if left or right then
+				self.aimDisc.y = self.pos.y - 16
+			else
+				self.aimDisc.y = self.pos.y - 16
+				self.aimDisc.x = self.pos.x
+			end
+		elseif down then
+			if left or right then
+				self.aimDisc.y = self.pos.y + 16
+			else
+				self.aimDisc.y = self.pos.y + 16
+				self.aimDisc.x = self.pos.x
+			end
+		end
+
+		self.aimDiscTrailPs.pos.x = self.aimDisc.x
+		self.aimDiscTrailPs.pos.y = self.aimDisc.y
 
 		return
 	end
@@ -290,8 +310,16 @@ function Player:moveControls(dt)
 end
 
 function Player:hitByDisc(disc)
+	if self.isInvulnerable then return end
 	-- die
 	self:removeArrow()
+
+	-- drop disc
+	if self.hasDisc then
+		local disc = Disc(self.pos.x, self.pos.y)
+		scene:addEntity(disc)
+		self.hasDisc = false
+	end
 
 	scene.camera:shake(15)
 	self.isAlive = false
@@ -334,8 +362,8 @@ function Player:hitByDisc(disc)
 end
 
 function Player:pickupPowerup(powerup)
-	local popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
-	popup.owner = self
+	table.insert(self.powerups, powerup)
+	-- popup.owner = self
 	-- scene:addEntity(popup)
 end
 
@@ -343,9 +371,45 @@ end
 function Player:respawn()
 	self.isAlive = true
 	self.isSolid = true
+	local respawnPos = {
+		x = _.random(G.tile_size * 5, G.width - G.tile_size*5),
+		y = _.random(G.tile_size * 5, G.height - G.tile_size*5)
+	}
+
+	self.pos.x = respawnPos.x
+	self.pos.y = respawnPos.y
+
+	self.isInvulnerable = true
+
+	self:blink()
+
+	timer.after(2, function()
+		self.isInvulnerable = false
+		self.isVisible = true
+	end)
 end
 
+function Player:blink()
+	if not self.isInvulnerable then
+		self.isVisible = true
+		return
+	end
+
+	timer.after(0.05, function()
+		self.isVisible = not self.isVisible
+		self:blink()
+	end)
+end
+
+
 function Player:draw()
+
+	if self.isAiming and self.aimDisc then
+		self.aimDiscTrailPs.pos.x = self.aimDisc.x
+		self.aimDiscTrailPs.pos.y = self.aimDisc.y
+		self.aimDiscTrailPs.ps:emit(1)
+		love.graphics.circle("fill", self.aimDisc.x, self.aimDisc.y, 6, 6)
+	end
 end
 
 return Player

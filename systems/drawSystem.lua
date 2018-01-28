@@ -10,6 +10,15 @@ local System = require "lib.knife.system"
 local drawSystem = System(
 	{ "draw" },
 	function(draw, e)
+		-- debug
+		if e.collider and G.debug then
+			love.graphics.setColor(255, 0, 0)
+			love.graphics.rectangle("line", e.collider.x, e.collider.y, e.collider.w, e.collider.h)
+			love.graphics.setColor(255, 255, 255)
+		end
+
+		if not e.isVisible then return end
+
 		if not e.isAlive then return end
 		
 		local x, y = e.pos.x, e.pos.y
@@ -29,12 +38,6 @@ local drawSystem = System(
 
 		if e.isLayerYPos then
 			e.layer = e.pos.y
-		end
-
-		if e.collider and G.debug then
-			love.graphics.setColor(255, 0, 0)
-			love.graphics.rectangle("line", e.collider.x, e.collider.y, e.collider.w, e.collider.h)
-			love.graphics.setColor(255, 255, 255)
 		end
 		-- local an = e.animation
 

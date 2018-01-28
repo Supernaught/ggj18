@@ -28,11 +28,14 @@ function Disc:new(x, y)
 	self.status = status.pickable
 	self.dontHitOwner = true
 	self.isStopping = false
-	self.maxBounces = 3
+	self.maxBounces = G.maxBounces
 	self.bounces = 0
+	self.isFromDual = false
 
-	local speed = 150
-	local maxVelocity = 200
+
+	-- default speed = 100, default maxVelocity = 300
+	local speed = 100
+	local maxVelocity = 300
 
 	local angle = 150
 	self.speed = speed
@@ -100,6 +103,7 @@ end
 function Disc:stop()
 	if self.speedMultiplier > 1.0 then self.speedMultiplier = 1.0 end
 	self.isStopping = true
+	self.maxBounces = G.maxBounces
 end
 
 function Disc:onPickedByPlayer(player)
@@ -113,7 +117,10 @@ function Disc:shoot(angle, charge)
 	self.trailPs.pos.x = self.pos.x
 	self.trailPs.pos.y = self.pos.y
 
-	self.speedMultiplier = 1.0 + (charge/50)
+	self.speedMultiplier = 1.0 + (charge/30)
+
+	if self.isFromDual then angle = angle + 22.5 end
+
 	local ox, oy = _.vector(math.rad(angle), 1)
 	local v = Vector(ox, oy):normalized() * self.speed
 	self.status = status.thrown
@@ -171,8 +178,8 @@ function Disc:update(dt)
 	local vel = self.movable.velocity
 
 	local v = Vector(vel.x, vel.y):normalized()
-	self.trailPs.pos.x = self.pos.x + (v.x*5) + _.random(-3,3)
-	self.trailPs.pos.y = self.pos.y + (v.y*5) + _.random(-3,3)
+	self.trailPs.pos.x = self.pos.x + (v.x*5) + _.random(-2,2)
+	self.trailPs.pos.y = self.pos.y + (v.y*5) + _.random(-2,2)
 
 	if self.trailPs and self.owner then
 		if math.abs(vel.x) < 30 and math.abs(vel.y) < 30 then
@@ -207,6 +214,7 @@ function Disc:update(dt)
 		local max = math.max(math.abs(self.movable.velocity.x), math.abs(self.movable.velocity.y))
 
 		if max < 5 then
+			if self.isFromDual then self.toRemove = true end
 			self.status = status.pickable
 			self.owner = nil
 		end

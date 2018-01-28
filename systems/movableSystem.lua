@@ -28,8 +28,13 @@ local movableSystem = System(
 		local vel, accel, maxVel, drag = mov.velocity, mov.acceleration, mov.maxVelocity, mov.drag
 
 		-- Update velocity
-		vel.x = vel.x + accel.x * dt
-		vel.y = vel.y + accel.y * dt
+		if math.abs(accel.x) > 0 and math.abs(accel.y) > 0 then
+			vel.x = vel.x + (accel.x/1.8) * dt
+			vel.y = vel.y + (accel.y/1.8) * dt
+		else
+			vel.x = vel.x + accel.x * dt
+			vel.y = vel.y + accel.y * dt
+		end
 
 		-- Update max velocity
 		if maxVel.x > 0 and math.abs(vel.x) > maxVel.x then

@@ -1,5 +1,6 @@
 local GameObject = require "alphonsus.gameobject"
 local assets = require "assets"
+local _ = require "lib.lume"
 local anim8 = require "lib.anim8"
 local Popup = require "entities.popup"
 
@@ -43,10 +44,13 @@ function Powerup:collisionFilter(other)
 end
 
 function Powerup:collide(other)
-	if other.isPlayer then
+	if other.isPlayer and not self.toRemove then
 		-- picked up
 		self.toRemove = true
-		local popup = Popup(self.pos.x, self.pos.y, "+SPEED", 50)
+		local randPowerup = _.randomchoice(G.powerups_array)
+		other:pickupPowerup(randPowerup)
+		
+		local popup = Popup(self.pos.x, self.pos.y, randPowerup:upper(), 50)
 		popup.owner = self
 		scene:addEntity(popup)
 	end

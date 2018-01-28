@@ -29,7 +29,7 @@ local player4 = nil
 local middlePoint = {}
 local tileMap = {}
 
-local noOfPlayers = 2
+local noOfPlayers = 4
 local remainingPlayers = {}
 
 -- helper function
@@ -48,28 +48,31 @@ function PlayState:enter()
 	tileMap = TileMap("assets/maps/level.lua", nil, nil, self.bumpWorld)
 	self:addEntity(tileMap)
 
-	-- setup players
-	player1 = Player(G.width - G.tile_size * 4, 80, 1)
-	self:addEntity(player1)
-
-	player2 = Player(G.tile_size * 3, 80, 2)
-	self:addEntity(player2)
-
 	for i=1,noOfPlayers,1 do
 		table.insert(remainingPlayers,i)
 	end
 
+	-- setup players
+	player1 = Player(G.tile_size * 5, G.tile_size * 5, 1)
+	self:addEntity(player1)
+	self:addEntity(Disc(player1.pos.x - G.tile_size, player1.pos.y - G.tile_size))
+
+
+	player2 = Player(G.width - G.tile_size * 5, 80, 2)
+	self:addEntity(player2)
+	self:addEntity(Disc(player2.pos.x + G.tile_size, player2.pos.y - G.tile_size))
+
 	if noOfPlayers > 2 then
-		player3 = Player(G.width - G.tile_size * 4, 120, 3)
+		player3 = Player(G.tile_size * 5, G.height - G.tile_size * 5, 3)
 		self:addEntity(player3)
+		self:addEntity(Disc(player3.pos.x - G.tile_size, player3.pos.y + G.tile_size))
 	end
 
 	if noOfPlayers > 3 then
-		player4 = Player(G.tile_size * 3, 120, 4)
+		player4 = Player(G.width - G.tile_size * 5, G.height - G.tile_size * 5, 4)
 		self:addEntity(player4)
+		self:addEntity(Disc(player4.pos.x + G.tile_size, player4.pos.y + G.tile_size))
 	end
-
-
 
 	-- add borders
 	-- self:addEntity(Square(0, 0, {255,255,255}, G.tile_size, G.height))
@@ -77,14 +80,8 @@ function PlayState:enter()
 	-- self:addEntity(Square(0, 0, {255,255,255}, G.width, G.tile_size))
 	-- self:addEntity(Square(0, G.height-16, {255,255,255}, G.width, G.tile_size))
 
-	self:addEntity(Disc(G.width/2, G.width/2))
-	self:addEntity(Disc(G.width/2 - 20, G.width/2))
-	self:addEntity(Disc(G.width/2 + 20, G.width/2))
-	self:addEntity(Disc(G.width/2 + 40, G.width/2))
-
-	self:addEntity(Powerup(100,100))
-	self:addEntity(Powerup(120,100))
-	self:addEntity(Powerup(150,100))
+	-- self:addEntity(Powerup(120,100))
+	-- self:addEntity(Powerup(150,100))
 
 	-- setup camera
 	middlePoint = GameObject(getMiddlePoint(player1.pos, player2.pos),0,0)
@@ -101,7 +98,31 @@ function PlayState:enter()
 	effect = moonshine(moonshine.effects.filmgrain)
 	-- effect.filmgrain.size = 2
 
+	timer.after(5, function()
+		self:spawnPowerup()
+		-- print("1")
+	end)
+
 	self.isGameOver = false
+end
+
+function PlayState:spawnPowerup()
+	if self.isGameOver then return end
+
+	local ts = G.tile_size
+	local pos = _.randomchoice({
+		-- { G.width/2, G.height/2 },
+		{ ts * 4, ts * 4 },
+		{ G.width - ts * 4, ts * 4 },
+		{ ts * 4, G.height - ts * 4 },
+		{ G.width - ts * 4, G.height - ts * 4 },
+	})
+
+	self:addEntity(Powerup(unpack(pos)))
+
+	timer.after(5, function()
+		self:spawnPowerup()
+	end)
 end
 
 function PlayState:stateUpdate(dt)
