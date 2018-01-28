@@ -23,7 +23,7 @@ function Player:new(x, y, playerNo)
 	-- self.shadow = Circle(self.pos.x, self.pos.y, 16,3)
 	-- scene:addEntity(self.shadow)
 
-	self.hp = 3
+	self.hp = G.maxHp
 
 	-- disc behavior
 	self.hasDisc = false
@@ -112,11 +112,15 @@ function Player:new(x, y, playerNo)
 	-- self.collider.w = G.tile_size/2
 	-- self.collider.h = G.tile_size/2
 
-	-- add top label
-	self.popup = Popup(self.pos.x, self.pos.y, "PLAYER 1", 50)
-	self.popup.owner = self
-	scene:addEntity(self.popup)
+	self:showPlayerLabel()
+
 	return self
+end
+
+function Player:showPlayerLabel()
+	-- add top label
+	self.playerLabel = PopupAnimation(self, self.pos.x, self.pos.y, self.playerNo..'-'..self.playerNo, 13, true)
+	scene:addEntity(self.playerLabel)
 end
 
 function Player:collide(other)
@@ -126,8 +130,14 @@ function Player:collide(other)
 end
 
 function Player:update(dt)
-	self:moveControls(dt)
-	self:shootControls()
+	if not scene.isGameOver then
+		self:moveControls(dt)
+		self:shootControls()
+	else
+		self.movable.acceleration.x = 0
+		self.movable.acceleration.y = 0
+	end
+
 	self:updateAnimations()
 
 	if self.trailPs then
@@ -176,9 +186,11 @@ end
 function Player:pickDisc()
 	if self.hasDisc then return end
 
-	self.arrow = PopupAnimation(self, self.pos.x, self.pos.y - 10)
+	self.arrow = PopupAnimation(self, self.pos.x, self.pos.y - 10, '1-5', self.playerNo+14)
 	scene:addEntity(self.arrow)
 	self.hasDisc = true
+
+	assets.pickdisc_sfx:clone():play()
 end
 
 function Player:removeArrow()
@@ -191,8 +203,6 @@ function Player:releaseDisc()
 	-- local angle = (self.direction == Direction.right and 0 or 180)
 	local disc = Disc(self.pos.x, self.pos.y)
 	disc.trailPs.ps:setColors(G.colors[self.playerNo])
-
-	scene:addEntity(disc)
 
 	for i,p in ipairs(self.powerups) do
 		if p == G.powerups.bounce then
@@ -207,18 +217,35 @@ function Player:releaseDisc()
 			disc2.owner = self
 			scene:addEntity(disc2)
 		elseif p == G.powerups.size then
+			disc.isBig = true
+			disc.trailPs.ps:setParticleLifetime(0.5,1)
+			disc.trailPs.ps:setSizes(2.2,1.0,0)
+		elseif p == G.powerups.speed then
+			disc.isSpeed = true
+			disc.speed = 400
+			disc.movable.maxVelocity.x = 400
+			disc.movable.maxVelocity.y = 400
 		end
 	end
 
 	self.powerups = {}
 
+	scene:addEntity(disc)
 	disc:shoot(self.aimAngle, self.charge)
 	disc.owner = self
+
+	if self.charge > 50 or disc.isBig then
+		assets.dash2_sfx:clone():play()
+	else
+		assets.dash1_sfx:clone():play()
+	end
 
 	self.hasDisc = false
 	self.charge = 0
 
 	self:removeArrow()
+
+
 end
 
 function Player:moveControls(dt)
@@ -310,7 +337,12 @@ function Player:moveControls(dt)
 end
 
 function Player:hitByDisc(disc)
-	if self.isInvulnerable then return end
+	if self.isInvulnerable and not self.isAlive then return end
+
+	assets.death:clone():play()
+
+	scene:playerKilled(self.playerNo, disc.owner.playerNo)
+
 	-- die
 	self:removeArrow()
 
@@ -353,7 +385,7 @@ function Player:hitByDisc(disc)
 
 	self.hp = self.hp - 1
 	if self.hp <= 0 and not scene.isGameOver then
-		scene:playerDead(self.playerNo)
+		scene:playerDead(self.playerNo, disc.owner.playerNo)
 	else
 		timer.after(2, function()
 			self:respawn()
@@ -363,12 +395,20 @@ end
 
 function Player:pickupPowerup(powerup)
 	table.insert(self.powerups, powerup)
+
+	assets.powerup_sfx:clone():play()
+
+	timer.after(10, function()
+		scene:spawnPowerup()
+	end)
 	-- popup.owner = self
 	-- scene:addEntity(popup)
 end
 
 
 function Player:respawn()
+	self:showPlayerLabel()
+
 	self.isAlive = true
 	self.isSolid = true
 	local respawnPos = {
@@ -403,7 +443,6 @@ end
 
 
 function Player:draw()
-
 	if self.isAiming and self.aimDisc then
 		self.aimDiscTrailPs.pos.x = self.aimDisc.x
 		self.aimDiscTrailPs.pos.y = self.aimDisc.y

@@ -31,7 +31,8 @@ function Disc:new(x, y)
 	self.maxBounces = G.maxBounces
 	self.bounces = 0
 	self.isFromDual = false
-
+	self.isBig = false
+	self.isSpeed = false
 
 	-- default speed = 100, default maxVelocity = 300
 	local speed = 100
@@ -117,11 +118,16 @@ function Disc:shoot(angle, charge)
 	self.trailPs.pos.x = self.pos.x
 	self.trailPs.pos.y = self.pos.y
 
-	self.speedMultiplier = 1.0 + (charge/30)
+	self.speedMultiplier = 1.0 + (charge/40)
+
+	if self.isBig then
+		self.speedMultiplier = self.speedMultiplier/2
+	end
 
 	if self.isFromDual then angle = angle + 22.5 end
 
 	local ox, oy = _.vector(math.rad(angle), 1)
+
 	local v = Vector(ox, oy):normalized() * self.speed
 	self.status = status.thrown
 	self.movable.velocity.x = v.x * self.speedMultiplier
@@ -160,6 +166,10 @@ function Disc:collide(other, col)
 		end
 
 		-- on bounce
+		bounce_sfx = _.randomchoice({
+			assets.bullet_sfx:clone(),
+		})
+		bounce_sfx:play()
 		self.movable.velocity.x = vx
 		self.movable.velocity.y = vy
 
@@ -178,8 +188,9 @@ function Disc:update(dt)
 	local vel = self.movable.velocity
 
 	local v = Vector(vel.x, vel.y):normalized()
-	self.trailPs.pos.x = self.pos.x + (v.x*5) + _.random(-2,2)
-	self.trailPs.pos.y = self.pos.y + (v.y*5) + _.random(-2,2)
+	local trailAhead = self.isBig and 2 or 5
+	self.trailPs.pos.x = self.pos.x + (v.x*trailAhead) + _.random(-2,2)
+	self.trailPs.pos.y = self.pos.y + (v.y*trailAhead) + _.random(-2,2)
 
 	if self.trailPs and self.owner then
 		if math.abs(vel.x) < 30 and math.abs(vel.y) < 30 then
@@ -232,7 +243,11 @@ function Disc:draw()
 	-- love.graphics.setColor(255,255,255)
 
 	-- love.graphics.setColor({255,})
-	love.graphics.circle("fill", self.pos.x, self.pos.y, 6, 6)
+	if self.isBig and self.status == status.thrown then
+		love.graphics.circle("fill", self.pos.x, self.pos.y, 12, 12)
+	else
+		love.graphics.circle("fill", self.pos.x, self.pos.y, 6, 6)
+	end
 	-- love.graphics.setColor(255,255,255)
 end
 

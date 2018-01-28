@@ -1,5 +1,6 @@
 local push = require "lib.push"
 local timer = require "lib.hump.timer"
+local flux = require "lib.flux"
 local Scene = require "alphonsus.scene"
 local Input = require "alphonsus.input"
 local GameObject = require "alphonsus.gameobject"
@@ -11,12 +12,14 @@ local moonshine = require "lib.moonshine"
 local Gamestate = require "lib.hump.gamestate"
 
 local assets = require "assets"
+local UIText = require "alphonsus.uitext"
 local Square = require "entities.square"
 local Player = require "entities.player"
 local Bullet = require "entities.bullet"
 local Disc = require "entities.disc"
 local TileMap = require "alphonsus.tilemap"
-local Dummy = require "entities.Dummy"
+local Sprite = require "entities.sprite"
+-- local Dummy = require "entities.dummy"
 local Powerup = require "entities.powerup"
 
 local PlayState = Scene:extend()
@@ -31,6 +34,14 @@ local tileMap = {}
 
 local noOfPlayers = 4
 local remainingPlayers = {}
+local canGoToMenu = false
+local ranking = {}
+local kills = {
+	[1] = 0,
+	[2] = 0,
+	[3] = 0,
+	[4] = 0,
+}
 
 -- helper function
 function getMiddlePoint(pos1, pos2)
@@ -40,6 +51,26 @@ end
 function PlayState:enter()
 	PlayState.super.enter(self)
 	scene = self
+
+	player1 = nil
+	player2 = nil
+	player3 = nil
+	player4 = nil
+	middlePoint = {}
+	tileMap = {}
+
+	noOfPlayers = 4
+	remainingPlayers = {}
+	canGoToMenu = false
+	ranking = {}
+	kills = {
+		[1] = 0,
+		[2] = 0,
+		[3] = 0,
+		[4] = 0,
+	}
+
+	timer:clear()
 
 	-- dummy
 	-- self:addEntity(Dummy(50,50))
@@ -52,26 +83,31 @@ function PlayState:enter()
 		table.insert(remainingPlayers,i)
 	end
 
+	tlog.print(remainingPlayers)
+
 	-- setup players
+	-- P1
 	player1 = Player(G.tile_size * 5, G.tile_size * 5, 1)
 	self:addEntity(player1)
 	self:addEntity(Disc(player1.pos.x - G.tile_size, player1.pos.y - G.tile_size))
 
-
-	player2 = Player(G.width - G.tile_size * 5, 80, 2)
+	-- P2
+	player2 = Player(G.width - G.tile_size * 5, G.height - G.tile_size * 5, 2)
 	self:addEntity(player2)
-	self:addEntity(Disc(player2.pos.x + G.tile_size, player2.pos.y - G.tile_size))
+	self:addEntity(Disc(player2.pos.x + G.tile_size, player2.pos.y + G.tile_size))
 
+	-- P3
 	if noOfPlayers > 2 then
-		player3 = Player(G.tile_size * 5, G.height - G.tile_size * 5, 3)
+		player3 = Player(G.width - G.tile_size * 5, G.tile_size * 5, 3)
 		self:addEntity(player3)
-		self:addEntity(Disc(player3.pos.x - G.tile_size, player3.pos.y + G.tile_size))
+		self:addEntity(Disc(player3.pos.x + G.tile_size, player3.pos.y - G.tile_size))
 	end
 
+	-- P4
 	if noOfPlayers > 3 then
-		player4 = Player(G.width - G.tile_size * 5, G.height - G.tile_size * 5, 4)
+		player4 = Player(G.tile_size * 5, G.height - G.tile_size * 5, 4)
 		self:addEntity(player4)
-		self:addEntity(Disc(player4.pos.x + G.tile_size, player4.pos.y + G.tile_size))
+		self:addEntity(Disc(player4.pos.x - G.tile_size, player4.pos.y + G.tile_size))
 	end
 
 	-- add borders
@@ -98,12 +134,12 @@ function PlayState:enter()
 	effect = moonshine(moonshine.effects.filmgrain)
 	-- effect.filmgrain.size = 2
 
-	timer.after(5, function()
+	timer.after(1, function()
 		self:spawnPowerup()
-		-- print("1")
 	end)
 
 	self.isGameOver = false
+	-- self:gameOver()
 end
 
 function PlayState:spawnPowerup()
@@ -111,18 +147,24 @@ function PlayState:spawnPowerup()
 
 	local ts = G.tile_size
 	local pos = _.randomchoice({
-		-- { G.width/2, G.height/2 },
-		{ ts * 4, ts * 4 },
-		{ G.width - ts * 4, ts * 4 },
-		{ ts * 4, G.height - ts * 4 },
-		{ G.width - ts * 4, G.height - ts * 4 },
+		{ G.width/2, ts * 4 }, -- top center
+		{ G.width/2, G.height - ts * 4 },  -- bottom center
+
+		{ ts * 4, G.height/2}, -- center left
+		{ G.width - ts * 4, G.height/2},  -- center right
+
+
+		{ ts * 4, ts * 4 }, --topleft
+		{ G.width - ts * 4, ts * 4 }, --topright
+		{ ts * 4, G.height - ts * 4 }, --bottomleft
+		{ G.width - ts * 4, G.height - ts * 4 }, --bottomright
 	})
 
 	self:addEntity(Powerup(unpack(pos)))
 
-	timer.after(5, function()
-		self:spawnPowerup()
-	end)
+	-- timer.after(5, function()
+	-- 	self:spawnPowerup()
+	-- end)
 end
 
 function PlayState:stateUpdate(dt)
@@ -162,6 +204,12 @@ function PlayState:stateUpdate(dt)
 	-- if Input.wasPressed('zoomOut') then
 	-- 	self.camera.zoom = self.camera.zoom-0.2
 	-- end
+
+	if self.isGameOver and canGoToMenu then
+		if Input.wasKeyPressed('return') or Input.isGamepadButtonDown('start', 1) or Input.isGamepadButtonDown('start', 2) then
+			Gamestate.switch(require "MenuState")
+		end
+	end
 end
 
 function PlayState:draw()
@@ -179,41 +227,97 @@ function PlayState:draw()
 	-- player 1 UI
 	push:start()
 	shack:apply()
-	love.graphics.draw(assets.p1, 0, 0)
-	love.graphics.draw(assets.p2, G.width - 16, G.height - 16)
 
 	if player1 then
+		love.graphics.draw(assets.p1, 0, 0)
 		for i=1,player1.hp,1 do
 			love.graphics.draw(assets.head1, 0 + (16*i), 0)
 		end
 	end
 
 	if player2 then
+		love.graphics.draw(assets.p2, G.width - 16, G.height - 16)
 		for i=player2.hp,1,-1 do
-			love.graphics.draw(assets.head2, G.width - (16*5) + (16*i), G.height - 16)
+			love.graphics.draw(assets.head2, G.width - (16 * (G.maxHp + 2)) + (16*i), G.height - 16)
 		end
 	end
+
+	if player3 then
+		love.graphics.draw(assets.p3, G.width - 16, 0)
+		for i=player3.hp,1,-1 do
+			love.graphics.draw(assets.head3, G.width - (16 * (G.maxHp + 2)) + (16*i), 0)
+		end
+	end
+
+	if player4 then
+		love.graphics.draw(assets.p4, 0, G.height-16)
+		for i=player4.hp,1,-1 do
+			love.graphics.draw(assets.head4, 0 + (16*i), G.height - 16)
+		end
+	end
+
 	push:finish()
 
 	-- PaletteSwitcher.unset()
 	-- love.graphics.setShader()
 end
 
-function PlayState:playerDead(playerNo)
-	table.remove(remainingPlayers, playerNo)
+function PlayState:playerKilled(playerNo, killer)
+	if self.isGameOver then return end
+
+	kills[killer] = kills[killer] + 1
+	print("KILLED", playerNo, killer)
+	tlog.print(kills)
+	print("===")
+end
+
+function PlayState:playerDead(playerNo, killer)
+	_.remove(remainingPlayers, playerNo)
+
+	print("PLAYER DEAD")
+	tlog.print(remainingPlayers)
+
 	if #remainingPlayers <= 1 then
 		self:gameOver()
 	end
+	print("===")
 end
 
 function PlayState:gameOver()
 	self.isGameOver = true
 
 	timer.after(1, function()
-		-- print("1")
-	end)
-	timer.after(2, function()
-		-- print("2")
+		local winnerPlayerNo = remainingPlayers[1]
+
+		local y = 65
+		local pWin = Sprite(assets.pAvatars[winnerPlayerNo], G.width/2, y, nil, nil, 2,2)
+		local wins = UIText(0, y+30, "PLAYER " .. winnerPlayerNo .. " WINS!", nil, nil, 24, assets.font2_md)
+
+		self:addEntity(wins)
+		self:addEntity(pWin)
+
+		print("GAMEOVER")
+		tlog.print(kills)
+		for i,r in ipairs(kills) do
+			table.insert(ranking, {playerNo=i,kills=r})
+		end
+
+		tlog.print(ranking)
+		ranking = _.sort(ranking, function(a,b) return a.kills > b.kills end)
+		tlog.print(ranking)
+
+		timer.after(1, function()
+			for i,r in ipairs(ranking) do
+				local yPos = y+20+(20*(i+1))
+				local xPos = G.width/2 - 40
+				local w = UIText(xPos, yPos, " X " .. r.kills .. " KILLS", 150, "left", 24, assets.font2_sm)
+				local icon = Sprite(assets.pAvatars[r.playerNo], xPos - 10, yPos, nil, nil)
+				self:addEntity(w)
+				self:addEntity(icon)
+			end
+
+			canGoToMenu = true
+		end)
 	end)
 end
 

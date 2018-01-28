@@ -1,5 +1,5 @@
 local assets =  require "assets"
-
+local timer = require "lib.hump.timer"
 local Scene = require "alphonsus.scene"
 local Input = require "alphonsus.input"
 local UIText = require "alphonsus.uitext"
@@ -46,19 +46,21 @@ function MenuState:enter()
 	self:addEntity(logo2)
 	self:addEntity(logo1)
 
-	self:addEntity(subtitle)
-	self:addEntity(supernaught)
-
 	flux.to(logo1.pos, 2, { x = pos.x, y = pos.y }):ease("elasticinout")
 	flux.to(logo2.pos, 2, { x = pos.x, y = pos.y }):ease("elasticinout")
 	flux.to(logo3.pos, 2, { x = pos.x, y = pos.y }):delay(0.6):ease("elasticinout")
+
+	timer.after(2.5, function()
+		self:addEntity(subtitle)
+		self:addEntity(supernaught)
+	end)
 	-- flux.to(titleText, 1, {fontScale = 1}):ease("backout")
 end
 
 function MenuState:stateUpdate(dt)
 	MenuState.super.stateUpdate(self, dt)
 
-	if Input.wasKeyPressed('return') then
+	if Input.wasKeyPressed('return') or Input.wasGamepadPressed('start', 1) or Input.wasGamepadPressed('start', 2) then
 		Gamestate.switch(PlayState())
 	end
 end

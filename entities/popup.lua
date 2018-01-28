@@ -39,7 +39,6 @@ function Popup:update(dt)
 
 	self.pos.x = self.pos.x + self.modifierPos.x
 	self.pos.y = self.pos.y + self.modifierPos.y
-
 end
 
 function Popup:draw()
