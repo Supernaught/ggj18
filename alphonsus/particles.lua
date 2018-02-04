@@ -39,7 +39,6 @@ function Particles:load(p)
 end
 
 function Particles:setColor(color)
-	tlog.print(color)
 	self.ps:setColors(color)
 end
 

@@ -17,9 +17,6 @@ function Explosion:new(x, y, w, h)
 
 	self.collider = nil
 
-	-- self.pos.x = self.pos.x - self.width / 2
-	-- self.pos.y = self.pos.y - self.width / 2
-
 	-- anim
 	self.sprite = assets.spritesheet
 	self.flippedH = false
