@@ -47,6 +47,10 @@ function GameObject:new(x, y, w, h)
 	-- 	oy = 0
 	-- }
 
+	-- flicker
+	self.isFlickering = false
+	self.flickerDelay = 0.05
+
 	-- used for collision filters in collisionSystem
 	-- if collides with entities with these tags, they will "slide"
 	self.collidableTags = {}
@@ -55,6 +59,9 @@ function GameObject:new(x, y, w, h)
 	self.nonCollidableTags = {}
 
 	return self
+end
+
+function GameObject:update(dt)
 end
 
 function GameObject:getMiddlePosition()
@@ -91,6 +98,29 @@ function GameObject:collisionFilter(other)
 		if other.isSolid then return "slide" end
 		return "cross"
 	end
+end
+
+function GameObject:flicker(duration, blinkDelay)
+	self.isFlickering = true
+	self.flickerDelay = blinkDelay or 0.05
+
+	self:blink()
+
+	if duration > 0 then
+		timer.after(duration, function()
+			self.isFlickering = false
+			self.isVisible = true
+		end)
+	end
+end
+
+function GameObject:blink()
+	if not self.isFlickering then self.isVisible = true return end
+
+	timer.after(self.flickerDelay, function()
+		self.isVisible = not self.isVisible
+		self:blink()
+	end)
 end
 
 return GameObject

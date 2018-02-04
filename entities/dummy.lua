@@ -29,10 +29,10 @@ function Dummy:new(x, y, w, h)
 	self.animation = anim8.newAnimation(g('1-1',19), 0.1)
 
 	-- movable component
-	local maxVelocity = 200
-	local Speed = 100
+	local maxVelocity = 0
+	local speed = 0
 	self.movable = {
-		velocity = { x = 100, y = 0 },
+		velocity = { x = 0, y = 0 },
 		acceleration = { x = 0, y = 0 },
 		drag = { x = 0, y = 0 },
 		maxVelocity = { x = maxVelocity, y = maxVelocity },

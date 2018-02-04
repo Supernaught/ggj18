@@ -46,33 +46,31 @@ function love.load()
 		["3_right"] = {"d"},
 		["3_down"] = {"s"},
 		["3_up"] = {"w"},
-		["3_shoot"]  = { "space", gamepad = { "a" }},
+		["3_shoot"]  = {"space"},
 
 		["4_left"] = {"left"},
 		["4_right"] = {"right"},
 		["4_down"] = {"down"},
 		["4_up"] = {"up"},
-		["4_shoot"]  = { "]", gamepad = { "a" } },
+		["4_shoot"]  = {"]"},
 
 		["1_left"] = {""},
 		["1_right"] = {""},
 		["1_down"] = {""},
 		["1_up"] = {""},
-		["1_shoot"]  = {""},
+		["1_shoot"]  = {gamepad = { "a" }},
 
 		["2_left"] = {""},
 		["2_right"] = {""},
 		["2_down"] = {""},
 		["2_up"] = {""},
-		["2_shoot"]  = {""},
+		["2_shoot"]  = {gamepad = { "a" }},
 	})
 
 	-- setup Gamestate
 	Gamestate.registerEvents()
-	playState = PlayState()
-	menuState = MenuState()
-	Gamestate.switch(menuState)
-	-- Gamestate.switch(playState)
+	Gamestate.switch(MenuState())
+	-- Gamestate.switch(PlayState())
 
 	setupBgMusic()
 end

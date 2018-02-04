@@ -1,6 +1,7 @@
-local assets = {}
-
 love.graphics.setDefaultFilter("nearest", "nearest")
+
+local assets = {}
+local anim8 = require "lib.anim8"
 
 -- Images
 assets.whiteCircle = love.graphics.newImage("assets/img/white_circle.png")
@@ -8,6 +9,34 @@ assets.whiteSquare = love.graphics.newImage("assets/img/white_square.png")
 assets.player = love.graphics.newImage("assets/img/anim.png")
 assets.bg = love.graphics.newImage("assets/img/bg.png")
 assets.spritesheet = love.graphics.newImage("assets/img/spritesheet.png")
+
+-- Animations
+local g = anim8.newGrid(G.tile_size, G.tile_size, assets.spritesheet:getWidth(), assets.spritesheet:getHeight())
+local idleFrameDelay = 0.1
+local runFrameDelay = 0.05
+local runFrames = '1-10'
+local idleFrames = '1-4'
+assets.animations = {
+	player = {
+		[1] = {
+			run = anim8.newAnimation(g(runFrames,1), runFrameDelay),
+			idle = anim8.newAnimation(g(idleFrames,2), idleFrameDelay),
+		},
+		[2] = {
+			run = anim8.newAnimation(g(runFrames,4), runFrameDelay),
+			idle = anim8.newAnimation(g(idleFrames,5), idleFrameDelay),
+		},
+		[3] = {
+			run = anim8.newAnimation(g(runFrames,7), runFrameDelay),
+			idle = anim8.newAnimation(g(idleFrames,8), idleFrameDelay),
+		},
+		[4] = {
+			run = anim8.newAnimation(g(runFrames,10), runFrameDelay),
+			idle = anim8.newAnimation(g(idleFrames,11), idleFrameDelay),
+		},
+	}
+}
+
 
 assets.logo1 = love.graphics.newImage("assets/img/logo1.png")
 assets.logo2 = love.graphics.newImage("assets/img/logo2.png")
@@ -22,6 +51,13 @@ assets.head1 = love.graphics.newImage("assets/img/player1_healthicon.png")
 assets.head2 = love.graphics.newImage("assets/img/player2_healthicon.png")
 assets.head3 = love.graphics.newImage("assets/img/player3_healthicon.png")
 assets.head4 = love.graphics.newImage("assets/img/player4_healthicon.png")
+
+assets.pLabels = {
+	[1] = assets.p1,
+	[2] = assets.p2,
+	[3] = assets.p3,
+	[4] = assets.p4,
+}
 
 assets.pHeads = {
 	[1] = assets.head1,

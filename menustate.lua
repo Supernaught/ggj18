@@ -12,7 +12,7 @@ local Gamestate = require "lib.hump.gamestate"
 local shack = require "lib.shack"
 local flux = require "lib.flux"
 
-local PlayState = require "playstate"
+local CharacterSelectState = require "characterselectstate"
 local MenuState = Scene:extend()
 
 function MenuState:enter()
@@ -81,8 +81,8 @@ function MenuState:stateUpdate(dt)
 	self.torchPs.pos.y = self.torchPos.y
 	self.torchPs.ps:emit(10)
 
-	if Input.wasKeyPressed('return') or Input.wasGamepadPressed('start', 1) or Input.wasGamepadPressed('start', 2) then
-		Gamestate.switch(PlayState())
+	if Input.wasKeyPressed('return') or Input.wasGamepadButtonPressed('start', 1) or Input.wasGamepadButtonPressed('start', 2) then
+		Gamestate.switch(CharacterSelectState())
 	end
 end
 

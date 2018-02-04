@@ -7,7 +7,7 @@ function Square:new(x, y, color, w, h)
 	self.name = "Square"
 	self.isSquare = true
 	self.isSolid = true
-	self.isLayerYPos = true
+	self.isLayerYPos = false
 	self.color = color or {100,255,100}
 
 	self.collider = {

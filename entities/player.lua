@@ -49,22 +49,9 @@ function Player:new(x, y, playerNo)
 	self.sprite = assets.spritesheet
 	self.flippedH = false
 	self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
-	local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
 
-	local row1,row2,row3=2,1,1
-
-	if playerNo == 1 then
-		row1,row2,row3=1,2,3
-	elseif playerNo == 2 then
-		row1,row2,row3=4,5,6
-	elseif playerNo == 3 then
-		row1,row2,row3=7,8,9
-	elseif playerNo == 4 then
-		row1,row2,row3=10,11,12
-	end
-
-	self.idleAnimation = anim8.newAnimation(g('1-4',row2), 0.1)
-	self.runningAnimation = anim8.newAnimation(g('1-10',row1), 0.05)
+	self.idleAnimation = assets.animations.player[self.playerNo].idle
+	self.runningAnimation = assets.animations.player[self.playerNo].run
 	self.animation = self.idleAnimation
 
 	-- physics
@@ -118,6 +105,7 @@ function Player:collide(other)
 end
 
 function Player:update(dt)
+	Player.super.update(self, dt)
 	if not scene.isGameOver then
 		self:moveControls(dt)
 		self:shootControls()
@@ -373,8 +361,6 @@ function Player:pickupPowerup(powerup)
 	timer.after(10, function()
 		scene:spawnPowerup()
 	end)
-	-- popup.owner = self
-	-- scene:addEntity(popup)
 end
 
 
@@ -393,26 +379,13 @@ function Player:respawn()
 
 	self.isInvulnerable = true
 
-	self:blink()
+	self:flicker(3, 0.05)
 
 	timer.after(3, function()
 		self.isInvulnerable = false
 		self.isVisible = true
 	end)
 end
-
-function Player:blink()
-	if not self.isInvulnerable then
-		self.isVisible = true
-		return
-	end
-
-	timer.after(0.05, function()
-		self.isVisible = not self.isVisible
-		self:blink()
-	end)
-end
-
 
 function Player:draw()
 	if self.isAiming and self.aimDisc then

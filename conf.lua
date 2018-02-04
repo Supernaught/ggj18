@@ -21,6 +21,7 @@ G = {
     bullet          = 700,
     player          = 800,
     explosion       = 810,
+    gameui          = 900,
     ui              = 999,
   },
 

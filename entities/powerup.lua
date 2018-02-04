@@ -2,7 +2,9 @@ local GameObject = require "alphonsus.gameobject"
 local assets = require "assets"
 local _ = require "lib.lume"
 local anim8 = require "lib.anim8"
+
 local Popup = require "entities.popup"
+local UIText = require "alphonsus.uitext"
 
 local Powerup = GameObject:extend()
 
@@ -50,8 +52,8 @@ function Powerup:collide(other)
 		local randPowerup = _.randomchoice(G.powerups_array)
 		other:pickupPowerup(randPowerup)
 		
-		local popup = Popup(self.pos.x, self.pos.y, randPowerup:upper(), 50)
-		popup.owner = self
+		local popup = Popup(self, self.pos.x, self.pos.y, randPowerup:upper(), 50)
+		popup.shadowColor = G.colors[other.playerNo]
 		scene:addEntity(popup)
 	end
 end

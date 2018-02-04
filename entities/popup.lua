@@ -5,7 +5,7 @@ local flux = require "lib.flux"
 
 local Popup = GameObject:extend()
 
-function Popup:new(x, y, text, width, align, fontSize, font, fontScale)
+function Popup:new(owner, x, y, text, width, align, fontSize, font, fontScale)
 	Popup.super.new(self, x, y)
 	self.name = "Popup"
 	self.isPopup = true
@@ -14,7 +14,7 @@ function Popup:new(x, y, text, width, align, fontSize, font, fontScale)
 	self.width = width or love.graphics.getWidth()/G.scale
 	self.align = align or "center"
 	self.fontSize = fontSize or 8
-	self.font = font or assets.font_sm
+	self.font = font or assets.font2_sm
 	self.fontScale = fontScale or 1
 
 	self.layer = G.layers.ui
@@ -57,6 +57,11 @@ function Popup:draw()
 	end
 
 	love.graphics.scale(self.fontScale)
+	if self.shadowColor then
+		love.graphics.setColor(self.shadowColor)
+		love.graphics.printf(self.text, self.pos.x/self.fontScale - self.offset.x, self.pos.y/self.fontScale - self.offset.y+1, self.width/self.fontScale, self.align)
+	end
+	love.graphics.setColor(255,255,255,255)
 	love.graphics.printf(self.text, self.pos.x/self.fontScale - self.offset.x, self.pos.y/self.fontScale - self.offset.y, self.width/self.fontScale, self.align)
 	love.graphics.scale(1)
 
