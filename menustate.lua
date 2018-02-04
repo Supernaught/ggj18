@@ -17,12 +17,12 @@ local MenuState = Scene:extend()
 
 function MenuState:enter()
 	MenuState.super.enter(self)
-	-- local titleText = UIText(0, -20, "GGJ18 GAME", nil, nil, nil, assets.font_lg)
-	local subtitleY = love.graphics.getHeight()/G.scale - 75
-	local supernaughtY = love.graphics.getHeight()/G.scale - 15
-	local musicY = love.graphics.getHeight()/G.scale - 5
-	local subtitle = UIText(0, subtitleY-16, "PRESS START TO PLAY", nil, nil, 24, assets.font2_sm)
-	local supernaught = UIText(0, supernaughtY-16, "A GAME BY SUPERNAUGHT 2018", nil, nil, 8, assets.font_sm)
+	local pressStartY = G.height * 0.7
+	local supernaughtY = G.height * 0.95
+	local musicY = supernaughtY + 10
+
+	local pressStart = UIText(0, pressStartY-16, "PRESS START TO PLAY", nil, nil, 24, assets.font2_sm)
+	local supernaught = UIText(0, supernaughtY-16, "A GAME BY SUPERNAUGHT FOR #GGJ2018", nil, nil, 8, assets.font_sm)
 	local music = UIText(0, musicY-16, "Music by NateA6 & NoodleSushi", nil, nil, 8, assets.font_sm)
 
 	self.bgColor = G.colors.bg
@@ -31,11 +31,11 @@ function MenuState:enter()
 	local spriteH = assets.logo1:getHeight()
 	local centerX = G.width/2 - spriteW/2
 
-	local pos = {x = centerX, y = 60}
+	local logoPos = {x = centerX, y = 60}
 
 	local logo1 = Sprite(assets.logo1, centerX, -spriteH)
 	local logo2 = Sprite(assets.logo2, centerX, G.height)
-	local logo3 = Sprite(assets.logo3, -spriteW, pos.y)
+	local logo3 = Sprite(assets.logo3, -spriteW, logoPos.y)
 
 	logo3.layer = 700
 	logo2.layer = 800
@@ -52,25 +52,23 @@ function MenuState:enter()
 		assets.explode3_sfx:clone():play()
 	end)
 
-	flux.to(logo1.pos, 2, { x = pos.x, y = pos.y }):ease("elasticinout")
-	flux.to(logo2.pos, 2, { x = pos.x, y = pos.y }):ease("elasticinout")
-	flux.to(logo3.pos, 0.6, { x = pos.x, y = pos.y }):delay(1.4):ease("expoout")
+	flux.to(logo1.pos, 2, { x = logoPos.x, y = logoPos.y }):ease("elasticinout")
+	flux.to(logo2.pos, 2, { x = logoPos.x, y = logoPos.y }):ease("elasticinout")
+	flux.to(logo3.pos, 0.6, { x = logoPos.x, y = logoPos.y }):delay(1.4):ease("expoout")
 
 	timer.after(2.5, function()
-		flux.to(subtitle.pos, 1, { y = subtitleY }):ease("elasticout")
+		flux.to(pressStart.pos, 1, { y = pressStartY }):ease("elasticout")
 
-		self:addEntity(subtitle)
+		self:addEntity(pressStart)
 		self:addEntity(supernaught)
 		self:addEntity(music)
 	end)
 
-	-- flux.to(titleText, 1, {fontScale = 1}):ease("backout")
-
-	self.torchPos = {x=131, y=52}
+	self.torchPos = {x = centerX+53, y = logoPos.y - 8}
 	self.torchPs = Particles(self.torchPos.x, self.torchPos.y)
 	local torch = require "entities.particles.torch"
 	self.torchPs:load(torch)
-	-- self.torchPs.ps:setColors(G.colors[self.playerNo])
+
 	timer.after(2, function()
 		self:addEntity(self.torchPs)
 	end)

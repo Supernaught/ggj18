@@ -109,21 +109,12 @@ function PlayState:enter()
 		self:addEntity(Disc(player4.pos.x - G.tile_size, player4.pos.y + G.tile_size))
 	end
 
-	-- add borders
-	-- self:addEntity(Square(0, 0, {255,255,255}, G.tile_size, G.height))
-	-- self:addEntity(Square(G.width-G.tile_size, 0, {255,255,255}, G.tile_size, G.height))
-	-- self:addEntity(Square(0, 0, {255,255,255}, G.width, G.tile_size))
-	-- self:addEntity(Square(0, G.height-16, {255,255,255}, G.width, G.tile_size))
-
-	-- self:addEntity(Powerup(120,100))
-	-- self:addEntity(Powerup(150,100))
-
 	-- setup camera
 	middlePoint = GameObject(getMiddlePoint(player1.pos, player2.pos),0,0)
 	middlePoint.collider = nil
-	self.camera:setPosition(middlePoint.pos.x, middlePoint.pos.y)
-	self.camera:startFollowing(middlePoint, 0, 0)
-	self.camera.followSpeed = 5
+	-- self.camera:setPosition(middlePoint.pos.x, middlePoint.pos.y)
+	-- self.camera:startFollowing(middlePoint, 0, 0)
+	-- self.camera.followSpeed = 5
 
 	-- setup shaders
 	PaletteSwitcher.init('assets/img/palettes.png', 'alphonsus/shaders/palette.fs');
@@ -211,7 +202,7 @@ function PlayState:stateUpdate(dt)
 	end
 end
 
-function PlayState:draw()
+function PlayState:stateDraw()
 	-- moonshine shader
 	-- effect(function()
 		-- PlayState.super.draw(self)
@@ -221,14 +212,11 @@ function PlayState:draw()
 	-- PaletteSwitcher.set();
 	-- love.graphics.setShader(bloomShader)
 
-	PlayState.super.draw(self)
+	PlayState.super.stateDraw(self)
 
 	-- player 1 UI
-	push:start()
-	shack:apply()
-
 	if player1 then
-		love.graphics.draw(assets.p1, 0, 0)
+		love.graphics.draw(assets.p1, 0, 0, 0, 1, 1)
 		for i=1,player1.hp,1 do
 			love.graphics.draw(assets.head1, 0 + (16*i), 0)
 		end
@@ -254,8 +242,6 @@ function PlayState:draw()
 			love.graphics.draw(assets.head4, 0 + (16*i), G.height - 16)
 		end
 	end
-
-	push:finish()
 
 	-- PaletteSwitcher.unset()
 	-- love.graphics.setShader()

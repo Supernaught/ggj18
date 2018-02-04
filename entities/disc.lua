@@ -13,13 +13,13 @@ local status = { thrown=0, picked=1, pickable=2 }
 
 local discTrail = require "entities.particles.discTrail"
 
-function Disc:new(x, y)
+function Disc:new(x, y, owner)
 	Disc.super.new(self, x, y)
 	self.name = "Disc"
 	self.isDisc = true
 	self.color = G.colors.red
 
-	self.owner = nil -- player object
+	self.owner = owner -- player object
 
 	self.layer = G.layers.bullet
 
@@ -36,18 +36,16 @@ function Disc:new(x, y)
 
 	-- default speed = 100, default maxVelocity = 300
 	local speed = 120
-	local maxVelocity = 300
+	local maxVelocity = 0
 
 	local angle = 150
 	self.speed = speed
 
 	-- draw
-	-- self.isLayerYPos = true
-	-- self.sprite = assets.spritesheet
-	-- self.flippedH = false
-	-- self.offset = { x = G.tile_size/2, y = G.tile_size/2 }
-	-- local g = anim8.newGrid(G.tile_size, G.tile_size, self.sprite:getWidth(), self.sprite:getHeight())
-	-- self.animation = anim8.newAnimation(g('1-1',19), 0.1)
+	self.sprite = assets.whiteCircle
+	self.width = 12
+	self.height = 12
+	self.offset = { x = 6, y = 6 }
 
 	-- movable
 	self.movable = {
@@ -68,12 +66,11 @@ function Disc:new(x, y)
 		oy = -self.offset.y
 	}
 
+	-- particles
 	self.trailPs = Particles(-50,-50)
 	self.trailPs.layer = G.layers.bulletTrail
 	self.trailPs:load(discTrail)
 	scene:addEntity(self.trailPs)
-
-	-- self.nonCollidableTags = {"isDisc", "isPlayer"}
 	
 	return self
 end
@@ -98,7 +95,6 @@ end
 
 function Disc:onKillPlayer(player)
 	player:hitByDisc(self)
-	-- self:stop()
 end
 
 function Disc:stop()
@@ -110,28 +106,33 @@ end
 function Disc:onPickedByPlayer(player)
 	if self.owner == nil and not player.hasDisc then
 		player:pickDisc()
+		self.owner = player
 		self.toRemove = true
 	end
 end
 
 function Disc:shoot(angle, charge)
+	self.trailPs.ps:setColors(G.colors[self.owner.playerNo])
 	self.trailPs.pos.x = self.pos.x
 	self.trailPs.pos.y = self.pos.y
 
 	self.speedMultiplier = 1.0 + (charge/40)
 
 	if self.isBig then
+		self.scale.x = 2
+		self.scale.y = 2
+		self.collider.ox = self.collider.ox - 6
+		self.collider.oy = self.collider.oy - 6
+		self.collider.w = 24
+		self.collider.h = 24
 		self.speedMultiplier = self.speedMultiplier/2
 	end
 
 	if self.isFromDual then angle = angle + 22.5 end
 
-	local ox, oy = _.vector(math.rad(angle), 1)
-
-	local v = Vector(ox, oy):normalized() * self.speed
 	self.status = status.thrown
-	self.movable.velocity.x = v.x * self.speedMultiplier
-	self.movable.velocity.y = v.y * self.speedMultiplier
+	self.movable.velocity.x = math.cos(math.rad(angle)) * self.speed * self.speedMultiplier
+	self.movable.velocity.y = math.sin(math.rad(angle)) * self.speed * self.speedMultiplier
 
 	timer.after(0.3, function()
 		self.dontHitOwner = false
@@ -157,6 +158,7 @@ function Disc:collide(other, col)
 	if other.isSolid and not other.isPlayer then
 		local nx, ny = col.normal.x, col.normal.y
 		local vx, vy = self.movable.velocity.x, self.movable.velocity.y
+
 		if (nx < 0 and vx > 0) or (nx > 0 and vx < 0) then
 			vx = -vx
 		end
@@ -170,6 +172,7 @@ function Disc:collide(other, col)
 			assets.bullet_sfx:clone(),
 		})
 		bounce_sfx:play()
+
 		self.movable.velocity.x = vx
 		self.movable.velocity.y = vy
 
@@ -182,8 +185,6 @@ function Disc:collide(other, col)
 end
 
 function Disc:update(dt)
-	self.angle = self.angle + 0.2
-
 	self.color = (self.status == status.thrown) and G.colors.red or G.colors.green
 	local vel = self.movable.velocity
 
@@ -222,12 +223,22 @@ function Disc:update(dt)
 		self.movable.velocity.x = self.movable.velocity.x * self.speedMultiplier
 		self.movable.velocity.y = self.movable.velocity.y * self.speedMultiplier
 
+
 		local max = math.max(math.abs(self.movable.velocity.x), math.abs(self.movable.velocity.y))
 
 		if max < 5 then
 			if self.isFromDual then self.toRemove = true end
 			self.status = status.pickable
 			self.owner = nil
+
+			self.scale.x = _.lerp(self.scale.x, 1, dt * 10)
+			self.scale.y = _.lerp(self.scale.y, 1, dt * 10)
+
+			self.collider.w = _.lerp(self.collider.w, self.width, dt * 10)
+			self.collider.h = _.lerp(self.collider.h, self.height, dt * 10)
+
+			self.collider.ox = _.lerp(self.collider.ox, -self.offset.x, dt * 10)
+			self.collider.oy = _.lerp(self.collider.oy, -self.offset.y, dt * 10)
 		end
 
 		if self.speedMultiplier < 0.5 then
@@ -243,11 +254,11 @@ function Disc:draw()
 	-- love.graphics.setColor(255,255,255)
 
 	-- love.graphics.setColor({255,})
-	if self.isBig and self.status == status.thrown then
-		love.graphics.circle("fill", self.pos.x, self.pos.y, 12, 12)
-	else
-		love.graphics.circle("fill", self.pos.x, self.pos.y, 6, 6)
-	end
+	-- if self.isBig and self.status == status.thrown then
+	-- 	love.graphics.circle("fill", self.pos.x, self.pos.y, 12, 12)
+	-- else
+	-- 	love.graphics.circle("fill", self.pos.x, self.pos.y, 6, 6)
+	-- end
 	-- love.graphics.setColor(255,255,255)
 end
 

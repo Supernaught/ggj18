@@ -29,7 +29,7 @@ function Scene:init()
 end
 
 function Scene:new()
-	self.bgColor = {0,0,0,255}
+	self.bgColor = G.colors.bg
 	
 	-- setup collision world
 	self.bumpWorld = bump.newWorld()
@@ -78,12 +78,19 @@ function Scene:update(dt)
 end
 
 -- basically the update function for states/scenes
+-- should be overriden by subclass
 function Scene:stateUpdate(dt)
+end
+
+-- basically the draw function for states/scenes
+-- should be overriden by subclass
+function Scene:stateDraw()
 end
 
 function Scene:draw()
 	push:start()
 	self.camera.cam:draw(function(l,t,w,h)
+		-- love.graphics.draw(assets.p1, 0, 0, 0, 2, 2)
 		love.graphics.setColor(unpack(self.bgColor))
 		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 		love.graphics.setColor(255,255,255,255)
@@ -93,6 +100,11 @@ function Scene:draw()
 			drawSystem(e, e)
 		end
 	end)
+
+	-- draw UI
+	-- love.graphics.scale(G.scale)
+	self:stateDraw()
+	-- love.graphics.scale(1)
 	push:finish()
 
 	if G.debug then

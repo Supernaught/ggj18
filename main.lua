@@ -22,13 +22,16 @@ function love.load()
 	local windowWidth, windowHeight
 	local gameWidth, gameHeight
 	if G.fullscreen then
+		G.scale = 1
 		windowWidth, windowHeight = love.window.getDesktopDimensions()
-		gameWidth, gameHeight = love.window.getDesktopDimensions()
+		gameWidth, gameHeight = 288, 224
+		G.width = gameWidth
+		G.height = gameHeight
 	else
 		gameWidth, gameHeight = G.width, G.height
 		windowWidth, windowHeight = G.width * G.scale, G.height * G.scale
 	end
-	push:setupScreen(gameWidth, gameHeight, windowWidth, windowHeight, {fullscreen = G.fullscreen, pixelperfect = true})
+	push:setupScreen(gameWidth, gameHeight, windowWidth, windowHeight, {fullscreen = G.fullscreen, pixelperfect = true, })
 
 	-- setup screenshake
 	shack:setDimensions(push:getDimensions())
@@ -43,14 +46,12 @@ function love.load()
 		["3_right"] = {"d"},
 		["3_down"] = {"s"},
 		["3_up"] = {"w"},
-		-- ["3_dash"]  = {"c"},
 		["3_shoot"]  = { "space", gamepad = { "a" }},
 
 		["4_left"] = {"left"},
 		["4_right"] = {"right"},
 		["4_down"] = {"down"},
 		["4_up"] = {"up"},
-		-- ["4_dash"]  = {"["},
 		["4_shoot"]  = { "]", gamepad = { "a" } },
 
 		["1_left"] = {""},
@@ -58,14 +59,12 @@ function love.load()
 		["1_down"] = {""},
 		["1_up"] = {""},
 		["1_shoot"]  = {""},
-		-- ["1_dash"]  = {""},
 
 		["2_left"] = {""},
 		["2_right"] = {""},
 		["2_down"] = {""},
 		["2_up"] = {""},
 		["2_shoot"]  = {""},
-		-- ["2_dash"]  = {""},
 	})
 
 	-- setup Gamestate

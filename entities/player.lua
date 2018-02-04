@@ -24,7 +24,6 @@ function Player:new(x, y, playerNo)
 	-- scene:addEntity(self.shadow)
 
 	self.hp = G.maxHp
-	self.isDashing = false
 
 	-- disc behavior
 	self.hasDisc = false
@@ -66,15 +65,14 @@ function Player:new(x, y, playerNo)
 
 	self.idleAnimation = anim8.newAnimation(g('1-4',row2), 0.1)
 	self.runningAnimation = anim8.newAnimation(g('1-10',row1), 0.05)
-	self.dashAnimation = anim8.newAnimation(g('1-3',row3), 0.1)
 	self.animation = self.idleAnimation
 
 	-- physics
 	self.isSolid = true
 	self.direction = Direction.right
-	local maxVelocity = 140
-	local speed = maxVelocity * 20
-	local drag = maxVelocity * 20
+	local maxVelocity = 160
+	local speed = maxVelocity * 10
+	local drag = 0
 
 	-- movable component
 	self.movable = {
@@ -86,13 +84,6 @@ function Player:new(x, y, playerNo)
 	}
 
 	-- particles
-	self.dashTrailPs = Particles(self.pos.x, self.pos.y, assets.pAvatars[self.playerNo])
-	local dashTrail = require "entities.particles.dashTrail"
-	self.dashTrailPs.layer = self.layer-1
-	self.dashTrailPs:load(dashTrail)
-	self.dashTrailPs.ps:setColors(G.colors[self.playerNo])
-	scene:addEntity(self.dashTrailPs)
-
 	self.aimDiscTrailPs = Particles()
 	local aimDiscTrail = require "entities.particles.aimDiscTrail"
 	self.aimDiscTrailPs:load(aimDiscTrail)
@@ -108,12 +99,9 @@ function Player:new(x, y, playerNo)
 		ox = -self.offset.x,
 		oy = 6 - self.offset.y
 	}
+
 	self.collidableTags = {"isEnemy"}
 	self.nonCollidableTags = {"isDisc", "isPowerup"}
-	-- self.collider.ox = G.tile_size/2 - G.tile_size/4
-	-- self.collider.oy = G.tile_size/2
-	-- self.collider.w = G.tile_size/2
-	-- self.collider.h = G.tile_size/2
 
 	self:showPlayerLabel()
 
@@ -127,9 +115,6 @@ function Player:showPlayerLabel()
 end
 
 function Player:collide(other)
-	-- if other.isPowerup and not other.toRemove then
-	-- 	self:pickupPowerup(other)
-	-- end
 end
 
 function Player:update(dt)
@@ -137,67 +122,28 @@ function Player:update(dt)
 		self:moveControls(dt)
 		self:shootControls()
 	else
-		self.movable.acceleration.x = 0
-		self.movable.acceleration.y = 0
+		self.movable.velocity.x = 0
+		self.movable.velocity.y = 0
 	end
 
 	self:updateAnimations()
-
-	if self.dashTrailPs then
-		local x, y = self.pos.x,self.pos.y
-		self.dashTrailPs.layer = self.layer - 10
-		self.dashTrailPs.pos.x = x
-		self.dashTrailPs.pos.y = y
-
-		if self.isDashing then
-			self.dashTrailPs.ps:emit(1)
-		end
-	end
 end
 
 function Player:updateAnimations()
-	if self.movable.acceleration.x < 0 then
+	if self.movable.velocity.x < 0 then
 		self.flippedH = true
-	elseif self.movable.acceleration.x > 0 then
+	elseif self.movable.velocity.x > 0 then
 		self.flippedH = false
 	end
 
-	if self.isDashing then
-		self.animation = self.dashAnimation
-	elseif self.movable.velocity.x == 0 and self.movable.velocity.y == 0 then
+	if self.movable.velocity.x == 0 and self.movable.velocity.y == 0 then
 		self.animation = self.idleAnimation
 	else
 		self.animation = self.runningAnimation
 	end
 end
 
--- function Player:getMidPos()
--- 	return self.pos.x + self.offset.x, self.pos.y + self.offset.y
--- end
-
-function Player:dash()
-	self.isDashing = true
-	self.isInvulnerable = true
-	
-	self.movable.maxVelocity.x = 140*3
-	self.movable.maxVelocity.y = 140*3
-
-
-	timer.after(0.1, function()
-		self.isDashing = false
-		self.movable.maxVelocity.x = 140
-		self.movable.maxVelocity.y = 140
-		self.isInvulnerable = false
-	end)
-end
-
 function Player:shootControls()
-	-- if self.isAlive and not self.isDashing then
-	-- 	if Input.wasPressed(self.playerNo..'_dash') or Input.wasGamepadPressed('x', self.playerNo) then
-	-- 		self:dash()
-	-- 	end
-	-- end
-
 	if self.isAlive and self.hasDisc then
 		if Input.isDown(self.playerNo .. '_shoot') or Input.isGamepadButtonDown('a', self.playerNo) then
 			self.isAiming = true
@@ -231,21 +177,18 @@ function Player:removeArrow()
 end
 
 function Player:releaseDisc()
-	-- local angle = (self.direction == Direction.right and 0 or 180)
-	local disc = Disc(self.pos.x, self.pos.y)
-	disc.trailPs.ps:setColors(G.colors[self.playerNo])
+	local disc = Disc(self.pos.x, self.pos.y, self)
 
 	for i,p in ipairs(self.powerups) do
 		if p == G.powerups.bounce then
 			disc.maxBounces = G.maxBounces * 2
 		elseif p == G.powerups.dual then
 			-- create 2nd disc
-			local disc2 = Disc(self.pos.x, self.pos.y)
+			local disc2 = Disc(self.pos.x, self.pos.y, self)
 			self.aimAngle = self.aimAngle
 			disc2.isFromDual = true
 			disc2.trailPs.ps:setColors(G.colors[self.playerNo])
 			disc2:shoot(self.aimAngle, self.charge)
-			disc2.owner = self
 			scene:addEntity(disc2)
 		elseif p == G.powerups.size then
 			disc.isBig = true
@@ -253,9 +196,7 @@ function Player:releaseDisc()
 			disc.trailPs.ps:setSizes(2.2,1.0,0)
 		elseif p == G.powerups.speed then
 			disc.isSpeed = true
-			disc.speed = 400
-			disc.movable.maxVelocity.x = 400
-			disc.movable.maxVelocity.y = 400
+			disc.speed = 200
 		end
 	end
 
@@ -263,7 +204,6 @@ function Player:releaseDisc()
 
 	scene:addEntity(disc)
 	disc:shoot(self.aimAngle, self.charge)
-	disc.owner = self
 
 	if self.charge > 50 or disc.isBig then
 		assets.dash2_sfx:clone():play()
@@ -275,8 +215,6 @@ function Player:releaseDisc()
 	self.charge = 0
 
 	self:removeArrow()
-
-
 end
 
 function Player:moveControls(dt)
@@ -287,9 +225,16 @@ function Player:moveControls(dt)
 	local up = Input.isDown(self.playerNo .. '_up') or Input.isAxisDown(self.playerNo, 'lefty', '<')
 	local down = Input.isDown(self.playerNo .. '_down') or Input.isAxisDown(self.playerNo, 'lefty', '>')
 
+	if self.hasDisc then
+		self.aimDisc.x = self.pos.x
+		self.aimDisc.y = self.pos.y
+		self.aimDiscTrailPs.pos.x = self.pos.x
+		self.aimDiscTrailPs.pos.y = self.pos.y
+	end
+
 	if self.hasDisc and self.isAiming then
-		self.movable.acceleration.x = 0
-		self.movable.acceleration.y = 0
+		self.movable.velocity.x = 0
+		self.movable.velocity.y = 0
 
 		-- aim direction
 		if up and left then self.aimAngle = -135
@@ -340,37 +285,28 @@ function Player:moveControls(dt)
 		return
 	end
 
-	local dashModifier = self.isDashing and 10 or 1
-
+	-- walk movement
 	if left and not right then
-		self.movable.acceleration.x = -self.movable.speed.x * dashModifier
+		self.movable.velocity.x = -self.movable.speed.x
 		self.direction = Direction.left
 		self.aimAngle = 180
 	elseif right and not left then
-		self.movable.acceleration.x = self.movable.speed.x * dashModifier
+		self.movable.velocity.x = self.movable.speed.x
 		self.direction = Direction.right
 		self.aimAngle = 0
 	else
-		if not self.isDashing then
-			self.movable.acceleration.x = 0
-		end
+		self.movable.velocity.x = 0
 	end
 
 	if up and not down then
-		self.movable.acceleration.y = -self.movable.speed.y * dashModifier
+		self.movable.velocity.y = -self.movable.speed.x
 		self.aimAngle = -90
 	elseif down and not up then
-		self.movable.acceleration.y = self.movable.speed.y * dashModifier
+		self.movable.velocity.y = self.movable.speed.x
 		self.aimAngle = 90
 	else
-		if not self.isDashing then
-			self.movable.acceleration.y = 0
-		end
+		self.movable.velocity.y = 0
 	end
-
-	local v = Vector(self.movable.acceleration.x,self.movable.acceleration.y):normalized()
-	self.movable.acceleration.x = v.x * self.movable.speed.x
-	self.movable.acceleration.y = v.y * self.movable.speed.y
 end
 
 function Player:hitByDisc(disc)
@@ -395,8 +331,6 @@ function Player:hitByDisc(disc)
 	self.isAlive = false
 	self.movable.velocity.x = 0
 	self.movable.velocity.y = 0
-	self.movable.acceleration.x = 0
-	self.movable.acceleration.y = 0
 
 	-- explode
 	for i=5,1,-1 do
@@ -485,7 +419,7 @@ function Player:draw()
 		self.aimDiscTrailPs.pos.x = self.aimDisc.x
 		self.aimDiscTrailPs.pos.y = self.aimDisc.y
 		self.aimDiscTrailPs.ps:emit(1)
-		love.graphics.circle("fill", self.aimDisc.x, self.aimDisc.y, 6, 6)
+		love.graphics.draw(assets.whiteCircle, self.aimDisc.x, self.aimDisc.y, 0, 1, 1, 6, 6)
 	end
 end
 

@@ -28,13 +28,8 @@ local movableSystem = System(
 		local vel, accel, maxVel, drag = mov.velocity, mov.acceleration, mov.maxVelocity, mov.drag
 
 		-- Update velocity
-		if math.abs(accel.x) > 0 and math.abs(accel.y) > 0 then
-			vel.x = vel.x + (accel.x/1.8) * dt
-			vel.y = vel.y + (accel.y/1.8) * dt
-		else
-			vel.x = vel.x + accel.x * dt
-			vel.y = vel.y + accel.y * dt
-		end
+		vel.x = vel.x + (accel.x * dt)
+		vel.y = vel.y + (accel.y * dt)
 
 		-- Update max velocity
 		if maxVel.x > 0 and math.abs(vel.x) > maxVel.x then
@@ -43,10 +38,12 @@ local movableSystem = System(
 		if maxVel.y > 0 and math.abs(vel.y) > maxVel.y then
 			vel.y = maxVel.y * _.sign(vel.y)
 		end
+		
 		-- Update position
-		-- local v = Vec(vel.x, vel.y):normalized()
-		e.pos.x = e.pos.x + vel.x * dt
-		e.pos.y = e.pos.y + vel.y * dt
+		local vx,vy = vector.normalize(vel.x, vel.y)
+		e.pos.x = e.pos.x + (vel.x * math.abs(vx)) * dt
+		e.pos.y = e.pos.y + (vel.y * math.abs(vy)) * dt
+
 		-- Apply drag if not accelerating
 		if accel.x == 0 and drag.x > 0 then
 			local sign = _.sign(vel.x)

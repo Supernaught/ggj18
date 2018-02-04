@@ -14,7 +14,7 @@ function UIText:new(x, y, text, width, align, fontSize, font, fontScale)
 
 	-- Draw UI System
 	self.text = text or ""
-	self.width = width or love.graphics.getWidth()/G.scale
+	self.width = width or G.width
 	self.align = align or "center"
 	self.fontSize = fontSize or 8
 	self.font = font or assets.font_sm

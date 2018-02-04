@@ -1,11 +1,11 @@
 G = {
-  title = "Game Title",
+  title = "KnightClub",
   scale = 3,
   tile_size = 16,
-  width = 16 * 18,
-  height = 16 * 14,
+  width = 16 * 18, --288
+  height = 16 * 14, --224
   fullscreen = true,
-  fullscreen = false,
+  -- fullscreen = false,
   debug = false,
 
   platformer = true, -- used for gravity logic in movableSystem
@@ -51,7 +51,7 @@ G = {
   },
 
   maxBounces = 3,
-  maxHp = 5,
+  maxHp = 8,
 
   direction = {
     left = 'left',
